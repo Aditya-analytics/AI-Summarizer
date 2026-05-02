@@ -9,7 +9,7 @@ from app.helper.youtube_id_extract import INVALID_URL
 from fastapi import APIRouter,HTTPException,File,UploadFile,BackgroundTasks
 from app.schemas import Prompt,Scrape,Transcribe
 from app.services.scraper_service import scrape_url
-from app.helper.streaming_response import streaming_output
+from app.helper.ingest_streaming import stream_ingestion_progress
 from app.helper.pdf_handler import extract_pdf_text
 from app.services.youtube_service import get_transcript
 from app.data.models import Document,DocumentContent,Output
@@ -24,7 +24,7 @@ async def get_documents(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    """Returns all documents owned by the current user, newest first."""
+    """Returns all documents owned by the current user with artifact flags."""
     from sqlalchemy.orm import selectinload
     result = await db.execute(
         select(Document)
@@ -33,18 +33,27 @@ async def get_documents(
         .order_by(Document.created_at.desc())
     )
     docs = result.scalars().all()
-    return [
-        {
+    
+    response = []
+    for d in docs:
+        artifacts = []
+        # Check output collection for artifact existence
+        has_summary = any(o.summary and o.style == 'standard' for o in d.output)
+        has_notes = any(o.notes for o in d.output)
+        has_quiz = any(o.quiz for o in d.output)
+        
+        if has_summary: artifacts.append('summary')
+        if has_notes: artifacts.append('notes')
+        if has_quiz: artifacts.append('quiz')
+        
+        response.append({
             "id": d.id,
             "name": d.source,
             "type": d.type,
             "created_at": str(d.created_at),
-            "artifacts": list(set([
-                k for o in d.output for k in ["summary", "notes", "quiz"] if getattr(o, k, None)
-            ]))
-        }
-        for d in docs
-    ]
+            "artifacts": artifacts
+        })
+    return response
 
 
 async def _get_or_create_doc(source: str, doc_type: str, text: str,
@@ -80,9 +89,6 @@ async def _get_or_create_doc(source: str, doc_type: str, text: str,
     await db.commit()
     await db.refresh(new_doc)
 
-    if bgt:
-        bgt.add_task(ingest_pipeline, text, new_doc.id)
-
     return new_doc.id, None  # Brand new doc — no cache yet
 
 
@@ -100,9 +106,8 @@ async def summarize(
         length=user_input.length, language=user_input.language, bgt=bgt
     )
     if cache:
-        return cache
-    return await streaming_output(user_input.text, user_input.length,
-                                   user_input.language, document_id=doc_id, db=db)
+        return "Content already processed. Access via library."
+    return await stream_ingestion_progress(user_input.text, doc_id)
 
 
 # ── URL ───────────────────────────────────────────────────────────────────────
@@ -119,9 +124,8 @@ async def summarize_url(
         length=user_input.length, language=user_input.language, bgt=bgt
     )
     if cache:
-        return cache
-    return await streaming_output(text, user_input.length,
-                                   user_input.language, document_id=doc_id, db=db)
+        return "Content already processed. Access via library."
+    return await stream_ingestion_progress(text, doc_id)
 
 
 # ── YouTube ───────────────────────────────────────────────────────────────────
@@ -139,9 +143,8 @@ async def yt_summarize(
             length=user_input.length, language=user_input.language, bgt=bgt
         )
         if cache:
-            return cache
-        return await streaming_output(text, user_input.length,
-                                       user_input.language, document_id=doc_id, db=db)
+            return "Content already processed. Access via library."
+        return await stream_ingestion_progress(text, doc_id)
     except INVALID_URL:
         raise HTTPException(status_code=400, detail="Invalid Url")
 
@@ -165,9 +168,9 @@ async def summarize_pdf(
         )
         
         if cache:
-            return cache
-
-        return await streaming_output(text, length, language, document_id=doc_id, db=db)
+            return "Content already processed. Access via library."
+        
+        return await stream_ingestion_progress(text, doc_id)
 
     except InvalidPDFError:
         raise HTTPException(status_code=400,detail="Uploaded document is not a pdf!")

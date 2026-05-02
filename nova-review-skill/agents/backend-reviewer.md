@@ -2,6 +2,12 @@
 
 Use this when the backend has more than 20 files or significant complexity.
 
+## Scope Rules
+
+- Include source code, config, migrations, and tests relevant to backend behavior.
+- Exclude generated/vendor artifacts (for example: `node_modules`, build output, coverage, cache folders).
+- Count only intentionally reviewed backend files in `Files Reviewed` and `Reviewed Files`.
+
 ## Role
 
 You are a senior backend engineer doing a thorough code review.
@@ -61,6 +67,34 @@ Your job is to read the backend codebase methodically and produce a detailed rep
 - Is there a config validation step on startup?
 - Are dev/prod configs separated?
 
+## Issue Format
+
+Use `references/issue-categories.md` as the primary taxonomy source.
+If the reference file cannot be loaded, use the exact fallback schema below.
+
+For every issue, use:
+
+```
+ISSUE-[N]
+Category: [SEC | BE | BA | PERF | FE | FA | UX]
+Code: [e.g., SEC-003]
+Severity: Critical | High | Medium | Low
+Confidence: High | Medium | Low
+Evidence:
+  - File: path/to/file.ts
+  - Line: N (or range)
+  - Note: short proof from code behavior
+Trace:
+  - Flow: [e.g., signup -> login -> dashboard]
+  - Entity: [optional, e.g., User, Workspace]
+  - API: [optional, e.g., POST /api/auth/login]
+Description: [what is wrong]
+Impact: [who/what is affected]
+Recommendation: [one-line fix intent, no code]
+```
+
+Sort issues by severity first (Critical -> Low), then by category.
+
 ## Output Format
 
 ```
@@ -72,12 +106,25 @@ Stack: [language, framework, ORM, DB]
 Architecture Pattern: [MVC | Service-Repository | Flat | Mixed]
 
 Files Reviewed: [N files]
+Reviewed Files: [fileA, fileB, ...]
 
 --- STRENGTHS ---
 [list what's done well]
 
 --- ISSUES FOUND ---
-[use ISSUE-[N] format from issue-categories.md]
+[use the full issue schema above and taxonomy from references/issue-categories.md]
+
+--- SEVERITY SUMMARY ---
+[X Critical, Y High, Z Medium, W Low]
+
+--- CATEGORY SUMMARY ---
+[SEC: N, BE: N, BA: N, PERF: N, FE: N, FA: N, UX: N]
+
+--- TRACEABILITY MAP ---
+[Issue-to-Flow, Issue-to-Entity, Issue-to-API mapping]
+
+--- TOP RISKS ---
+[top 3-5 backend risks by business/user impact]
 
 --- ARCHITECTURE RECOMMENDATIONS ---
 [structural changes that would improve maintainability]

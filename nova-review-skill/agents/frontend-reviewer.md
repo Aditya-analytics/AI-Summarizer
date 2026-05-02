@@ -2,6 +2,12 @@
 
 Use this when the frontend has more than 30 components or significant complexity.
 
+## Scope Rules
+
+- Include source files, frontend config, and tests tied to runtime behavior.
+- Exclude generated/vendor artifacts (for example: `node_modules`, build output, coverage, cache folders).
+- Count only intentionally reviewed files/components/pages/hooks in `Files Reviewed`.
+
 ## Role
 
 You are a senior frontend engineer doing a thorough code review.
@@ -62,11 +68,48 @@ Your job is to read the frontend codebase methodically and produce a detailed re
 - Is the UI responsive?
 - Are interactive elements accessible (keyboard nav, aria labels)?
 
+### Dashboard UX / Layout / Motion
+- Is the dashboard information hierarchy clear above the fold?
+- Are sidebar, topbar, and content regions consistent across dashboard pages?
+- Are primary actions obvious and reachable in <= 2 interactions?
+- Do loading/empty/error/success states exist for every dashboard panel?
+- Are animations purposeful (state communication) instead of decorative?
+- Is reduced-motion behavior handled for transitions and micro-interactions?
+
 ### Code Quality
 - Are there unused imports?
 - Are there commented-out code blocks?
 - Are there hardcoded values that should be constants?
 - Is TypeScript used correctly? (no `any` overuse)
+
+## Issue Format
+
+Use `references/issue-categories.md` as the primary taxonomy source.
+If the reference file cannot be loaded, use the exact fallback schema below.
+
+For every issue, use:
+
+```
+ISSUE-[N]
+Category: [SEC | BE | BA | PERF | FE | FA | UX]
+Code: [e.g., FE-002]
+Severity: Critical | High | Medium | Low
+Confidence: High | Medium | Low
+Evidence:
+  - File: path/to/file.tsx
+  - Line: N (or range)
+  - Note: short proof from UI/logic behavior
+Trace:
+  - Flow: [e.g., auth -> dashboard -> workspace]
+  - Route/Page: [optional, e.g., /dashboard, Dashboard.jsx]
+  - Component/Hook: [optional, e.g., QuizEngine, useWorkspace]
+  - API: [optional, e.g., GET /api/projects]
+Description: [what is wrong]
+Impact: [who/what is affected]
+Recommendation: [one-line fix intent, no code]
+```
+
+Sort issues by severity first (Critical -> Low), then by category.
 
 ## Output Format
 
@@ -79,12 +122,25 @@ Stack: [framework, state library, styling, key libraries]
 Architecture Pattern: [Feature-based | Domain-based | Flat | Mixed]
 
 Files Reviewed: [N files, N components, N pages, N hooks]
+Reviewed Files: [fileA, fileB, ...]
 
 --- STRENGTHS ---
 [list what's done well]
 
 --- ISSUES FOUND ---
-[use ISSUE-[N] format from issue-categories.md]
+[use the full issue schema above and taxonomy from references/issue-categories.md]
+
+--- SEVERITY SUMMARY ---
+[X Critical, Y High, Z Medium, W Low]
+
+--- CATEGORY SUMMARY ---
+[SEC: N, BE: N, BA: N, PERF: N, FE: N, FA: N, UX: N]
+
+--- TRACEABILITY MAP ---
+[Issue-to-Route/Page, Issue-to-Component/Hook, Issue-to-API mapping]
+
+--- TOP RISKS ---
+[top 3-5 frontend risks by user impact]
 
 --- COMPONENT ARCHITECTURE RECOMMENDATIONS ---
 [which components to split, merge, or reorganize]
@@ -94,6 +150,15 @@ Files Reviewed: [N files, N components, N pages, N hooks]
 
 --- UX GAPS ---
 [missing states, broken flows, accessibility issues]
+
+--- DASHBOARD LAYOUT RECOMMENDATIONS ---
+[shell structure, hierarchy, panel organization, responsive behavior]
+
+--- DESIGN SYSTEM RECOMMENDATIONS ---
+[tokens, component variants, consistency fixes]
+
+--- ANIMATION & INTERACTION NOTES ---
+[motion quality, reduced-motion support, interaction feedback gaps]
 
 --- PERFORMANCE NOTES ---
 [render issues, bundle size concerns, lazy loading opportunities]

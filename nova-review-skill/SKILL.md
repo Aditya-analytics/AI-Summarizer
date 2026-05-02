@@ -184,17 +184,31 @@ Read `references/issue-categories.md` for the full checklist. Key areas:
 For each issue found, record:
 ```
 ISSUE-[N]
-Type: Bug | Performance | Security | UX | Architecture
+Category: [SEC | BE | BA | PERF | FE | FA | UX]
+Code: [e.g., SEC-003]
 Severity: Critical | High | Medium | Low
-File: path/to/file.js (line N)
+Confidence: High | Medium | Low
+Evidence:
+  - File: path/to/file.js
+  - Line: N (or range)
+  - Note: [short proof from code/behavior]
+Trace:
+  - Flow: [e.g., signup -> dashboard -> workspace]
+  - Entity: [optional, e.g., User, Workspace]
+  - API: [optional, e.g., POST /api/auth/login]
 Description: What is wrong
 Impact: What breaks or degrades because of this
-Fix: One-line description of the fix (no code yet)
+Recommendation: One-line description of the fix intent (no code yet)
 ```
 
 ### Phase 3 Output
 Produce a **prioritized issue list** sorted by Severity, grouped by category.
 Include a count: `X Critical, Y High, Z Medium, W Low`.
+Also include category counts: `SEC: N, BE: N, BA: N, PERF: N, FE: N, FA: N, UX: N`.
+Include a traceability section mapping:
+- issue -> user flow
+- issue -> entity (if applicable)
+- issue -> API (if applicable)
 
 **Then ask**: "Phase 3 complete. I found [N] issues. Shall I proceed to Phase 4 — Implementation Guide?"
 
@@ -222,6 +236,9 @@ ISSUE refs: ISSUE-3, ISSUE-7
 What to do: [1-3 sentence description of the change]
 Dependencies: TASK-[M] must complete first (if any)
 Estimated complexity: Small (< 30 min) | Medium (30-90 min) | Large (90+ min)
+AcceptanceCheck: [how to verify task completion]
+RiskIfDeferred: [impact if this task is postponed]
+OwnerTrack: [A | B | C | D | E]
 ```
 
 ### Phase 4 Output
@@ -304,6 +321,9 @@ Produce a full **Dashboard Design Spec**:
 - Layout diagram (ASCII or described)
 - Component inventory with behavior spec
 - Animation spec table
+- UX state matrix (loading, empty, success, error for each key view)
+- Accessibility checklist (keyboard flow, focus order, aria, contrast)
+- Motion safety notes (reduced-motion behavior and performance guardrails)
 - One reference implementation: the main dashboard card/layout as code
 
 **Then ask**: "Phase 5 complete. Ready to execute? I'll implement fixes and redesign track by track. Which track do you want first: A (Critical Fixes), B (Backend), C (Frontend), D (Architecture), or E (Dashboard)?"
@@ -357,6 +377,8 @@ These apply across all phases:
 - **Comment your changes** — all new/modified code should have a brief inline comment
 - **One file at a time** in Phase 6 — don't batch-modify multiple files in one response
 - **Keep responses focused** — per phase, produce only that phase's output
+- **Scope reviews correctly** — include source/config/tests; exclude generated/vendor files (`node_modules`, build output, coverage, cache)
+- **Use explicit counts** — when reporting file/component counts, include only intentionally reviewed artifacts
 
 ---
 

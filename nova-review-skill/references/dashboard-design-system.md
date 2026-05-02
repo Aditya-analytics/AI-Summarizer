@@ -388,3 +388,44 @@ const item = {
 // Use CSS custom properties for all colors — never hardcode
 // All spacing via utility classes or CSS vars — never arbitrary px in JSX
 ```
+
+---
+
+## Phase 5 Validation Contract (Required)
+
+Use this checklist to ensure dashboard specs are implementation-ready and auditable.
+
+### 1) UX State Matrix (Required)
+
+For each key view (Dashboard Home, Workspace, Analytics, Settings), define:
+- Loading state
+- Empty state
+- Success state
+- Error state
+- Recovery action (retry, fallback nav, support path)
+
+### 2) Accessibility Acceptance (Required)
+
+For each interactive region, verify:
+- Keyboard-only path is complete
+- Focus order is logical and visible
+- Icon-only actions have labels
+- Contrast is acceptable for critical text and controls
+- Motion can be reduced without losing meaning
+
+### 3) Motion Safety Guardrails (Required)
+
+All planned animations should specify:
+- Purpose (what state change it communicates)
+- Duration and easing token
+- Performance safety (prefer transform/opacity)
+- Reduced-motion fallback
+- Failure behavior (disable non-essential motion on low-performance paths)
+
+### 4) Layout Consistency Checks (Required)
+
+The final design spec should confirm:
+- Sidebar/topbar/content hierarchy is consistent across dashboard routes
+- Primary actions are visible in first viewport on desktop
+- Responsive breakpoints preserve task completion (not only visual stacking)
+- Dense data panels remain readable (spacing and typography constraints)
