@@ -100,3 +100,44 @@ Use this in Phase 2 to ensure thorough coverage of the codebase logic.
 - [ ] Is there lazy loading for heavy frontend routes/components?
 - [ ] Are images and assets optimized?
 - [ ] Is there any unnecessary re-rendering in the frontend?
+
+---
+
+## Phase 2 Output Contract (Required)
+
+Use this structure so Phase 2 output feeds Phase 3 and Phase 4 without ambiguity.
+
+### A) API Contract Table (Required Columns)
+
+For each endpoint, include:
+- Method
+- Path
+- Auth Required (Yes/No + mechanism)
+- Controller/Handler
+- Primary Entity
+- Called From (frontend page/component/hook if applicable)
+- Success Shape (brief)
+- Error Shape (brief)
+
+### B) Frontend to API Trace (Required)
+
+For each critical user flow, map:
+- Flow Name (e.g., signup -> dashboard -> workspace)
+- Triggering UI surface (route/page/component)
+- API sequence (ordered)
+- State transitions (loading/empty/success/error)
+
+### C) Business Rule Trace (Required)
+
+For each key rule, include:
+- Rule statement
+- Enforcement point (frontend/backend/both)
+- Evidence (file + line/range + note)
+- Failure mode if violated
+
+### D) Risk Notes for Phase 3 (Required)
+
+Where confidence is incomplete, include:
+- Assumption
+- Confidence: High | Medium | Low
+- Verification needed in Phase 3
