@@ -1,0 +1,7 @@
+const CONFIG = {
+  API_BASE_URL: 'http://localhost:8000',
+  APP_NAME: 'Nova',
+  VERSION: '3.0.0-final'
+};
+
+export default CONFIG;
