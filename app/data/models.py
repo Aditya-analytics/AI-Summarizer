@@ -37,8 +37,16 @@ class Document(Base):
         cascade="all, delete-orphan"
     )
 
-    output: Mapped[list["Output"]] = relationship(back_populates="document", lazy="selectin")
-    qa_history: Mapped[list["QAHistory"]] = relationship(back_populates="document", lazy="selectin")
+    output: Mapped[list["Output"]] = relationship(
+        back_populates="document", 
+        lazy="selectin",
+        cascade="all, delete-orphan"
+    )
+    qa_history: Mapped[list["QAHistory"]] = relationship(
+        back_populates="document", 
+        lazy="selectin",
+        cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         UniqueConstraint("user_id", "source", name="uq_user_source"),

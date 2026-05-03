@@ -89,14 +89,17 @@ const api = {
   // ── Quiz (JSON — NOT streaming) ────────────────────────────────────────────
   // Note: document_id is a QUERY PARAM, difficulty goes in the body
   getQuiz: (document_id, difficulty = 'medium') =>
-    apiFetch('POST', `/qa/quiz?document_id=${document_id}`, { difficulty }),
+    apiStream('POST', `/qa/quiz?document_id=${document_id}`, { difficulty }),
 
   // ── Notes (Streaming) ──────────────────────────────────────────────────────
   // Note: document_id is a QUERY PARAM, config goes in the body
   getNotes: (document_id, length = 'standard', language = 'English') =>
     apiStream('POST', `/qa/notes?document_id=${document_id}`, { length, language }),
 
-  // ── Summary & Raw Text ─────────────────────────────────────────────────────
+  // ── Summary & Artifacts ───────────────────────────────────────────────────
+  getArtifacts: (document_id) =>
+    apiFetch('GET', `/qa/document/${document_id}/artifacts`),
+
   getRawText: (document_id) =>
     apiFetch('GET', `/qa/document/${document_id}/raw`),
 

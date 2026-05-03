@@ -1,5 +1,4 @@
-from app.services.llm_service import llm_full_response
-from app.config import OLLAMA_URL,MODEL_NAME
+from app.config import MODEL_NAME
 
 def generate_notes_prompt(context:str,tone:str):
     

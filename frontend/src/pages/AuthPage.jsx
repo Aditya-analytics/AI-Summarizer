@@ -19,7 +19,10 @@ const GoogleIcon = () => (
   </svg>
 );
 
+import { useWorkspace } from '../context/WorkspaceContext';
+
 const AuthPage = () => {
+  const { login } = useWorkspace();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -55,8 +58,7 @@ const AuthPage = () => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || 'Login failed');
 
-        localStorage.setItem('nova_token', data.access_token);
-        localStorage.setItem('nova_user_email', email);
+        await login(data.access_token, email);
         navigate('/dashboard', { replace: true });
       } else {
         const response = await fetch(`${CONFIG.API_BASE_URL}/authentication/signup`, {
@@ -88,14 +90,14 @@ const AuthPage = () => {
         </div>
         <h2>{isLogin ? 'Sign in to Nova' : 'Create your account'}</h2>
         {error && (
-          <div style={{ 
-            color: '#ef4444', 
-            fontSize: '13px', 
-            marginBottom: '16px', 
-            background: '#fef2f2', 
-            padding: '10px', 
-            borderRadius: '8px', 
-            border: '1px solid #fee2e2' 
+          <div style={{
+            color: '#ef4444',
+            fontSize: '13px',
+            marginBottom: '16px',
+            background: '#fef2f2',
+            padding: '10px',
+            borderRadius: '8px',
+            border: '1px solid #fee2e2'
           }}>
             {error}
           </div>

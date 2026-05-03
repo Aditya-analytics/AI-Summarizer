@@ -24,11 +24,12 @@ async def get_documents(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    """Returns all documents owned by the current user with artifact flags."""
-    from sqlalchemy.orm import selectinload
+    """Returns all documents owned by the current user with efficient artifact flags."""
+    from sqlalchemy import exists
+
+    # 1. Fetch documents
     result = await db.execute(
         select(Document)
-        .options(selectinload(Document.output))
         .where(Document.user_id == current_user.id)
         .order_by(Document.created_at.desc())
     )
@@ -36,22 +37,36 @@ async def get_documents(
     
     response = []
     for d in docs:
+        # 2. Efficiently check for artifacts using EXISTS
         artifacts = []
-        # Check output collection for artifact existence
-        has_summary = any(o.summary and o.style == 'standard' for o in d.output)
-        has_notes = any(o.notes for o in d.output)
-        has_quiz = any(o.quiz for o in d.output)
         
-        if has_summary: artifacts.append('summary')
-        if has_notes: artifacts.append('notes')
-        if has_quiz: artifacts.append('quiz')
+        # Check summary
+        summary_exists = await db.scalar(
+            select(exists().where(Output.document_id == d.id, Output.summary.isnot(None)))
+        )
+        if summary_exists: artifacts.append('summary')
+        
+        # Check notes
+        notes_exists = await db.scalar(
+            select(exists().where(Output.document_id == d.id, Output.notes.isnot(None)))
+        )
+        if notes_exists: artifacts.append('notes')
+        
+        # Check quiz
+        quiz_exists = await db.scalar(
+            select(exists().where(Output.document_id == d.id, Output.quiz.isnot(None)))
+        )
+        if quiz_exists: artifacts.append('quiz')
         
         response.append({
             "id": d.id,
             "name": d.source,
             "type": d.type,
             "created_at": str(d.created_at),
-            "artifacts": artifacts
+            "artifacts": artifacts,
+            "has_summary": summary_exists > 0,
+            "has_notes": notes_exists > 0,
+            "has_quiz": quiz_exists > 0
         })
     return response
 

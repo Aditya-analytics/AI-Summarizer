@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { 
   FileText, 
   MessageSquareText, 
@@ -204,4 +204,4 @@ const WorkspaceSidebar = ({ activePanel, setActivePanel, docName }) => {
   );
 };
 
-export default WorkspaceSidebar;
+export default memo(WorkspaceSidebar);

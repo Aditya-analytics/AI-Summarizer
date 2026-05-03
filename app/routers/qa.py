@@ -12,8 +12,8 @@ from fastapi import Depends
 from app.services.llm_service import llm_response
 from app.services.qa_service import generate_qa_prompt
 from app.services.qa_service import get_context_from_db
-from fastapi import APIRouter,HTTPException
-from app.config import MODEL_NAME,OLLAMA_URL
+from fastapi import APIRouter, HTTPException, Request
+from app.config import MODEL_NAME
 from fastapi.responses import StreamingResponse
 from app.schemas import QA
 import json
@@ -25,7 +25,48 @@ qa_router = APIRouter(
     tags=["features"]
 )
 
-# ── Raw Document Text ─────────────────────────────────────────────────────────
+@qa_router.get("/document/{document_id}/artifacts", status_code=200)
+async def get_all_artifacts(document_id: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
+    """Fetches all existing artifacts and chat history for rehydration."""
+    # 1. Ownership check
+    result = await db.execute(
+        select(Document).where(Document.id == document_id, Document.user_id == current_user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # 2. Fetch latest outputs (Summary, Notes, Quiz)
+    out_result = await db.execute(
+        select(Output).where(Output.document_id == document_id).order_by(Output.id.desc())
+    )
+    outputs = out_result.scalars().all()
+    
+    # 3. Fetch Chat History
+    chat_result = await db.execute(
+        select(QAHistory).where(QAHistory.document_id == document_id).order_by(QAHistory.id.asc())
+    )
+    history = chat_result.scalars().all()
+
+    # Organize artifacts by type (taking latest for each)
+    summary = next((o.summary for o in outputs if o.summary), None)
+    notes = next((o.notes for o in outputs if o.notes), None)
+    
+    quiz = None
+    quiz_raw = next((o.quiz for o in outputs if o.quiz), None)
+    if quiz_raw:
+        try:
+            quiz = json.loads(quiz_raw)
+        except:
+            quiz = None
+
+    return {
+        "summary": summary,
+        "notes": notes,
+        "quiz": quiz,
+        "chat": [{"role": "user", "content": h.question} if i % 2 == 0 else {"role": "ai", "content": h.answer} 
+                 for i, h in enumerate(history)] # Basic mapping for now
+    }
+
 @qa_router.get("/document/{document_id}/raw", status_code=200)
 async def get_raw_text(document_id: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
     result = await db.execute(
@@ -78,7 +119,7 @@ async def get_summary(config: BasicConfigs, document_id: int, db: AsyncSession =
 
 
 @qa_router.post("/ask",status_code=200)
-async def ask(user_input: QA,db: AsyncSession = Depends(get_db),current_user = Depends(get_current_user)):
+async def ask(user_input: QA, request: Request, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
     result = await db.execute(
         select(Document).where(
             Document.id == user_input.document_id,
@@ -90,26 +131,21 @@ async def ask(user_input: QA,db: AsyncSession = Depends(get_db),current_user = D
     if not doc :
         raise HTTPException(status_code=404,detail="Document not found or access denied")
 
-    context,scores = await get_context_from_db(user_input.question,user_input.document_id)
+    context, scores = await get_context_from_db(user_input.question, user_input.document_id, request.app.state.vector_db)
     prompt = generate_qa_prompt(user_input.question,context)
     full_answer = []
     try :
         async def stream_generator():
-        # Loop over the generator from the service
-            async for line in llm_response(prompt, MODEL_NAME, OLLAMA_URL):
-            # Parse the JSON string into a dictionary
-                chunk = json.loads(line)
-                full_answer.append(chunk.get("response"))
-
-            # Yield the final string to the browser
-                yield chunk.get("response", "")
+            async for chunk in llm_response(prompt, MODEL_NAME):
+                full_answer.append(chunk)
+                yield chunk
+            
             response = "".join(full_answer)
-
             hist = QAHistory(
-                    question=user_input.question,
-                    document_id=user_input.document_id,
-                    answer=response
-                )
+                question=user_input.question,
+                document_id=user_input.document_id,
+                answer=response
+            )
             db.add(hist)
             await db.commit()
             await db.refresh(hist)
@@ -119,7 +155,7 @@ async def ask(user_input: QA,db: AsyncSession = Depends(get_db),current_user = D
         raise HTTPException(status_code=500,detail=str(e))
 
 @qa_router.post("/quiz",status_code=200)
-async def get_quizes(config:QuizConfig,document_id : int,db: AsyncSession = Depends(get_db),current_user = Depends(get_current_user)):
+async def get_quizes(config: QuizConfig, document_id: int, request: Request, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
 
     result = await db.execute(
         select(Document)
@@ -142,39 +178,46 @@ async def get_quizes(config:QuizConfig,document_id : int,db: AsyncSession = Depe
     )
     cache = result.scalar_one_or_none()
     if cache:
-        return json.loads(cache)
+        try:
+            return json.loads(cache)
+        except Exception as e:
+            print(f"LOG: Corrupted quiz cache for doc {document_id}: {e}")
+            # Continue to generation if cache is corrupted
 
     # 2. AI GENERATION
-    # Use a focused query — NOT the full raw_text (would exceed embedding model's context)
-    quiz_query = f"key concepts, definitions, and important facts for a {config.difficulty} difficulty quiz"
-    context, scores = await get_context_from_db(quiz_query, document_id, k=10)
-
-    # Guard: if no vectors exist yet, the document is still being indexed
+    from app.services.quiz_service import generate_quiz_stream
+    quiz_query = f"key concepts and important facts for a {config.difficulty} difficulty quiz"
+    context, scores = await get_context_from_db(quiz_query, document_id, request.app.state.vector_db, k=15)
+    
     if not context or not context.strip():
-        raise HTTPException(
-            status_code=503,
-            detail="Document is still being indexed. Please wait a moment and try again."
-        )
+        raise HTTPException(status_code=503, detail="Document is still being indexed.")
 
-    quizes = await generate_quiz(context, config.difficulty)
-    if len(quizes.questions) == 0:
-        raise HTTPException(status_code=411,detail="Provide more content to generate quizes")
+    full_quiz_json = []
+    async def stream_quiz():
+        async for chunk in generate_quiz_stream(context, config.difficulty):
+            full_quiz_json.append(chunk)
+            yield chunk
+        
+        # 3. SAVE CACHE (after stream ends)
+        try:
+            quiz_str = "".join(full_quiz_json)
+            if "questions" in quiz_str and "]" in quiz_str:
+                new_cache = Output(
+                    document_id=document_id,
+                    quiz=quiz_str,
+                    difficulty=config.difficulty,
+                    style="quiz",
+                    language="English"
+                )
+                db.add(new_cache)
+                await db.commit()
+        except Exception as e:
+            print(f"LOG: Failed to cache quiz: {e}")
 
-    # 3. SAVE CACHE
-    new_cache = Output(
-        document_id=document_id,
-        quiz=json.dumps(quizes.model_dump()),
-        difficulty=config.difficulty,
-        style="quiz",
-        language="English"
-    )
-    db.add(new_cache)
-    await db.commit()
-
-    return quizes
+    return StreamingResponse(stream_quiz(), media_type="text/plain")
 
 @qa_router.post("/notes",status_code=200)
-async def get_notes(config:BasicConfigs,document_id: int,db: AsyncSession = Depends(get_db),current_user = Depends(get_current_user)):
+async def get_notes(config: BasicConfigs, document_id: int, request: Request, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
     result = await db.execute(
         select(Document)
         .options(joinedload(Document.content_blob))  # Load raw_text eagerly
@@ -204,7 +247,7 @@ async def get_notes(config:BasicConfigs,document_id: int,db: AsyncSession = Depe
     # raw_text only used for k calculation — NOT as the query (would exceed context limit)
     k = max(3, min(20, len(raw_text) // 1000))
     notes_query = f"key concepts, main ideas, summary, and important details for {config.length} notes"
-    context, scores = await get_context_from_db(notes_query, document_id, k=k)
+    context, scores = await get_context_from_db(notes_query, document_id, request.app.state.vector_db, k=k)
 
     # Guard: if no vectors exist yet, the document is still being indexed
     if not context or not context.strip():
@@ -218,10 +261,9 @@ async def get_notes(config:BasicConfigs,document_id: int,db: AsyncSession = Depe
     notes = []
     try :
         async def stream_generator():
-            async for line in llm_response(prompt, MODEL_NAME, OLLAMA_URL):
-                chunk = json.loads(line)
-                notes.append(chunk.get("response"))
-                yield chunk.get("response", "")
+            async for chunk in llm_response(prompt, MODEL_NAME):
+                notes.append(chunk)
+                yield chunk
             
             # 3. SAVE CACHE (Inside generator after completion)
             response = "".join(notes)

@@ -97,24 +97,25 @@ const StatCard = ({ label, value, icon: Icon, subtext, trend, idx }) => (
 );
 
 const StatsGrid = ({ documents }) => {
+  const safeDocs = Array.isArray(documents) ? documents : [];
   const stats = [
     { 
       label: 'Total Insights', 
-      value: documents.length, 
+      value: safeDocs.length, 
       icon: Zap, 
       subtext: '+12% this week', 
       trend: true 
     },
     { 
       label: 'Documents', 
-      value: documents.filter(d => d.type === 'PDF').length, 
+      value: safeDocs.filter(d => d.type === 'PDF').length, 
       icon: FileText, 
       subtext: 'High-fidelity PDFs', 
       trend: false 
     },
     { 
       label: 'Web & Media', 
-      value: documents.filter(d => d.type !== 'PDF').length, 
+      value: safeDocs.filter(d => d.type !== 'PDF').length, 
       icon: Globe, 
       subtext: 'Articles & Videos', 
       trend: false 

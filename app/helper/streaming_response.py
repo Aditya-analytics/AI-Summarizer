@@ -1,9 +1,8 @@
 from app.helper.dynamic_prompt import tweak_prompt
 from app.services.llm_service import llm_response
-from app.config import MODEL_NAME,OLLAMA_URL,SYSTEM_PROMPT
+from app.config import MODEL_NAME, SYSTEM_PROMPT
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
-import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.data.models import Output
@@ -14,11 +13,9 @@ async def streaming_output(text:str,length:str,language:str, document_id: int = 
     try :
         async def stream_generator():
             full_summary = []
-            async for line in llm_response(query, MODEL_NAME, OLLAMA_URL):
-                chunk = json.loads(line)
-                content = chunk.get("response", "")
-                full_summary.append(content)
-                yield content
+            async for chunk in llm_response(query, MODEL_NAME):
+                full_summary.append(chunk)
+                yield chunk
             
             # Caching logic
             if document_id and db:

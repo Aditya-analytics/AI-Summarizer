@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
+import FormattedText from '../common/FormattedText';
 import { 
   BookOpen, 
   Download, 
@@ -17,7 +17,8 @@ const NotesPanel = ({
   onGenerate, 
   length, 
   setLength, 
-  error 
+  error,
+  docUrl
 }) => {
   const [copied, setCopied] = React.useState(false);
 
@@ -87,10 +88,10 @@ const NotesPanel = ({
                   <span>{copied ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
-              <div className="markdown-body">
-                <ReactMarkdown>{notes}</ReactMarkdown>
-                {loading && <span className="typing-cursor">▌</span>}
-              </div>
+                <div className="markdown-body">
+                  <FormattedText docUrl={docUrl}>{notes}</FormattedText>
+                  {loading && <span className="typing-cursor">▌</span>}
+                </div>
             </div>
           )}
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
+import FormattedText from '../common/FormattedText';
 import { 
   RefreshCw, 
   Settings, 
@@ -18,7 +18,8 @@ const SummaryPanel = ({
   onGenerate, 
   length, 
   setLength, 
-  error 
+  error,
+  docUrl
 }) => {
   const [copied, setCopied] = React.useState(false);
 
@@ -88,7 +89,7 @@ const SummaryPanel = ({
               </button>
             </div>
             <div className="markdown-body">
-              <ReactMarkdown>{summary}</ReactMarkdown>
+              <FormattedText docUrl={docUrl}>{summary}</FormattedText>
               {loading && <span className="typing-cursor">▌</span>}
             </div>
           </div>

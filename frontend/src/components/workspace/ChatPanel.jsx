@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import FormattedText from '../common/FormattedText';
 import { 
   Send, 
   Sparkles, 
@@ -15,7 +16,8 @@ const ChatPanel = ({
   input, 
   setInput, 
   onSend, 
-  loading 
+  loading,
+  docUrl
 }) => {
   const endRef = useRef(null);
 
@@ -67,7 +69,7 @@ const ChatPanel = ({
               className={`message-row ${msg.role}`}
             >
               <div className="message-bubble">
-                {msg.content}
+                <FormattedText docUrl={docUrl}>{msg.content}</FormattedText>
                 {msg.role === 'ai' && msg.content === '' && loading && (
                   <span className="typing-dot">.</span>
                 )}

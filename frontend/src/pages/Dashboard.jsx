@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { useWorkspace } from '../context/WorkspaceContext';
 
 // Layout Components
@@ -15,6 +17,7 @@ import IngestModal from '../components/dashboard/IngestModal';
 import { useIngestion } from '../hooks/useIngestion';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { documents, loading, error, deleteDocument } = useWorkspace();
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -65,12 +68,18 @@ const Dashboard = () => {
 
           <section className="library-section">
             <div className="section-header">
-              <h3>Recent Documents</h3>
-              <p>Manage and review your processed research content.</p>
+              <div className="header-left">
+                <h3>Recent Documents</h3>
+                <p>Manage and review your processed research content.</p>
+              </div>
+              <button className="view-all-btn" onClick={() => navigate('/library')}>
+                View All Library
+                <ArrowRight size={16} />
+              </button>
             </div>
             
             <DocumentLibrary 
-              documents={documents} 
+              documents={Array.isArray(documents) ? documents.slice(0, 3) : []} 
               loading={loading} 
               onDelete={deleteDocument}
             />
@@ -158,6 +167,9 @@ const Dashboard = () => {
         }
 
         .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
           margin-bottom: 24px;
         }
 
@@ -172,6 +184,27 @@ const Dashboard = () => {
         .section-header p {
           font-size: 14px;
           color: var(--text-muted);
+        }
+
+        .view-all-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: white;
+          border: 1px solid var(--border-subtle);
+          padding: 8px 16px;
+          border-radius: var(--radius-md);
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .view-all-btn:hover {
+          border-color: var(--brand-primary);
+          color: var(--brand-primary);
+          box-shadow: var(--shadow-sm);
         }
 
         @keyframes pulse {

@@ -1,7 +1,7 @@
 from app.helper.chunk import process_chunk
 from app.helper.embed import store_chunks
 
-async def ingest_pipeline(text:str,document_id:str):
+async def ingest_pipeline(text: str, document_id: int):
     try:
         chunks = await process_chunk(text)
 

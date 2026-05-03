@@ -11,21 +11,26 @@ import {
   Users
 } from 'lucide-react';
 
+import { useWorkspace } from '../../context/WorkspaceContext';
+
 const Sidebar = ({ collapsed = false }) => {
+  const { clearWorkspace } = useWorkspace();
   const navigate = useNavigate();
   const location = useLocation();
   const userEmail = localStorage.getItem('nova_user_email') || 'User';
   const userName = userEmail.split('@')[0];
 
   const handleLogout = () => {
+    clearWorkspace();
     localStorage.removeItem('nova_token');
     localStorage.removeItem('nova_user_email');
     navigate('/auth');
   };
 
   const navItems = [
+    { id: 'home', label: 'Home', icon: Sparkles, path: '/' },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { id: 'library', label: 'My Library', icon: FileText, path: '/dashboard' }, // Library is currently part of dashboard
+    { id: 'library', label: 'My Library', icon: FileText, path: '/library' },
     { id: 'community', label: 'Community', icon: Users, path: '#', badge: 'Soon' },
     { id: 'settings', label: 'Settings', icon: Settings, path: '#' },
   ];

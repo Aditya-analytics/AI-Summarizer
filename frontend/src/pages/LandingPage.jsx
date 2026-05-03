@@ -4,7 +4,7 @@ import {
   Sparkles, ArrowRight, Search, Layout, BookOpen, 
   MessageSquare, Bell, Star, FileText, PlayCircle, 
   Globe, Zap, Book, GraduationCap, Microscope, 
-  ListChecks, Check 
+  ListChecks, Check, Code
 } from 'lucide-react';
 
 const MockUI = () => (
@@ -92,10 +92,10 @@ const LandingPage = () => {
       <nav className="navbar-v2 animate-fade-up">
         <div className="nav-left">
           <div className="nav-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <div className="w-8 h-8 rounded-lg gradient-accent flex items-center justify-center shadow-lg shadow-orange-500/20">
-              <Sparkles className="text-white w-5 h-5" />
+            <div className="logo-icon-v2">
+              <Sparkles size={20} fill="currentColor" />
             </div>
-            <span className="logo-text">Nova</span>
+            <span className="logo-text-v2">Nova</span>
           </div>
         </div>
         <div className="nav-center-v2">
@@ -325,14 +325,35 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <footer className="footer">
-        <div className="footer-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          <div className="w-8 h-8 rounded-lg gradient-accent flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <Sparkles className="text-white w-5 h-5" />
-          </div>
-          <span className="logo-text">Nova</span>
+      <section className="cta-section reveal">
+        <div className="cta-card">
+          <div className="cta-glow"></div>
+          <h2>Ready to transform your research?</h2>
+          <p>Join thousands of students and researchers using Nova to master their materials.</p>
+          <button className="btn-filled-v2" onClick={() => navigate('/auth')}>
+            Get Started for Free <ArrowRight size={18} />
+          </button>
         </div>
-        <p className="footer-copy">© 2026 Nova. Built for learners, by engineers.</p>
+      </section>
+
+      <footer className="footer">
+        <div className="footer-left">
+          <div className="footer-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <div className="logo-icon-v2">
+              <Sparkles size={20} fill="currentColor" />
+            </div>
+            <span className="logo-text-v2">Nova</span>
+          </div>
+          <p className="footer-copy">
+            © 2026 Nova. Built for learners, by <a href="https://github.com/Aditya-analytics/AI-Summarizer/tree/main" target="_blank" rel="noopener noreferrer" className="aditya-link">Aditya</a>.
+          </p>
+        </div>
+        <div className="footer-right">
+          <a href="https://github.com/Aditya-analytics/AI-Summarizer/tree/main" target="_blank" rel="noopener noreferrer" className="github-btn">
+            <Code size={20} />
+            <span>GitHub</span>
+          </a>
+        </div>
       </footer>
     </div>
   );

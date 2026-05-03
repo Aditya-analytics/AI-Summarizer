@@ -3,7 +3,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL_NAME = os.getenv("model")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+MODEL_FLASH_LITE = "models/gemini-2.5-flash-lite"
+MODEL_FLASH = "models/gemini-2.5-flash"
+MODEL_PRO = "models/gemini-2.5-pro"
+# Default fallback (Smartly use Flash-Lite for everything fast)
+MODEL_NAME = MODEL_FLASH_LITE
 
 SYSTEM_PROMPT = """You are an expert intelligence analyst and professional text summarizer.
 
@@ -18,13 +23,14 @@ CRITICAL RULES:
 2. Zero hallucinations: Do not inject outside knowledge, opinions, or assumptions.
 3. Direct formatting: Begin output immediately with bullet points. Never use conversational filler like "Here is the summary" or "In conclusion".
 4. Professional tone: Use clear, grammatical, and highly accessible language.
+5. TIMESTAMP CITATION: If the input text contains timestamps like [MM:SS], ALWAYS include the relevant timestamp at the beginning or end of your bullet points to cite exactly where that information occurs.
 
 {LENGTH_INSTRUCTION}
 
 INPUT TEXT:
 """
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+# Ollama is deprecated, using Gemini now.
 
 SCRAPE_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 

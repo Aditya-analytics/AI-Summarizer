@@ -23,17 +23,38 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
 
   if (!isOpen) return null;
 
-  const handleSubmit = () => {
-    if (activeTab === 'pdf') {
-      // PDF handled by input onChange
-    } else {
-      onIngest({ type: activeTab, value: inputValue, length: summaryLength, language });
+  const validateInput = () => {
+    if (activeTab === 'url') {
+      if (!inputValue.startsWith('http')) return 'URL must start with http:// or https://';
     }
+    if (activeTab === 'youtube') {
+      const isShorts = inputValue.includes('/shorts/');
+      const isStandard = inputValue.includes('v=') || inputValue.includes('youtu.be/');
+      if (!isShorts && !isStandard) return 'Invalid YouTube URL format';
+    }
+    if (activeTab === 'text') {
+      if (inputValue.length < 50) return 'Content too short. Paste at least 50 chars.';
+    }
+    return null;
+  };
+
+  const handleSubmit = () => {
+    const errorMsg = validateInput();
+    if (errorMsg) {
+      console.log("LOG: Validation Error:", errorMsg);
+      return;
+    }
+    
+    onIngest({ type: activeTab, value: inputValue, length: summaryLength, language });
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        console.log('LOG: Invalid file type uploaded.');
+        return;
+      }
       onIngest({ type: 'pdf', file, length: summaryLength, language });
     }
   };
@@ -127,7 +148,7 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                       />
-                      <button className="input-submit-btn" onClick={handleSubmit} disabled={isUploading || !inputValue}>
+                      <button className="input-submit-btn" onClick={() => handleSubmit()}>
                         <ChevronRight size={20} />
                       </button>
                     </div>
@@ -199,7 +220,12 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
         <div className="modal-footer">
           <button className="btn-secondary" onClick={onClose} disabled={isUploading}>Cancel</button>
           {activeTab !== 'pdf' && (
-            <button className="btn-primary" onClick={handleSubmit} disabled={isUploading || !inputValue}>
+            <button 
+              className="btn-primary" 
+              onClick={handleSubmit} 
+              disabled={isUploading || !inputValue.trim()}
+              style={{ cursor: isUploading || !inputValue.trim() ? 'not-allowed' : 'pointer' }}
+            >
               Process Content
             </button>
           )}

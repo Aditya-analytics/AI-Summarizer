@@ -7,10 +7,21 @@ from app.data.models import Base
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # # This runs when the server starts, creating all tables
-    # async with engine.begin() as conn:
-    #     await conn.run_sync(Base.metadata.create_all)
+    # Initialize Vector DB Singleton
+    print("LOG: Initializing Vector DB Singleton...")
+    from langchain_google_genai import GoogleGenerativeAIEmbeddings
+    from langchain_chroma import Chroma
+    from app.config import GEMINI_API_KEY
+    
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-2", google_api_key=GEMINI_API_KEY)
+    vectorstore = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
+    
+    app.state.vector_db = vectorstore
+    app.state.embeddings = embeddings
+    print("LOG: Vector DB Ready with Gemini Embeddings.")
+    
     yield
+    # Cleanup if needed
 
 def create_app():
     from app.routers.qa import qa_router

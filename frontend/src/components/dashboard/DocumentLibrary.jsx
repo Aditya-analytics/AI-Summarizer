@@ -11,7 +11,8 @@ import {
   BrainCircuit,
   MessageSquareText,
   FileSearch,
-  ArrowRight
+  ArrowRight,
+  Trash2
 } from 'lucide-react';
 
 const DocumentLibrary = ({ documents, loading, onDelete }) => {
@@ -27,7 +28,10 @@ const DocumentLibrary = ({ documents, loading, onDelete }) => {
   };
 
   const hasArtifact = (doc, type) => {
-    return doc.artifacts && doc.artifacts.includes(type);
+    if (type === 'summary') return doc.has_summary;
+    if (type === 'quiz') return doc.has_quiz;
+    if (type === 'notes') return doc.has_notes;
+    return false;
   };
 
   if (loading) {
@@ -66,36 +70,35 @@ const DocumentLibrary = ({ documents, loading, onDelete }) => {
           </tr>
         </thead>
         <tbody>
-          {documents.map((doc, idx) => (
+          {(Array.isArray(documents) ? documents : []).map((doc, idx) => (
             <motion.tr 
               key={doc.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              onClick={() => navigate(`/workspace/${doc.id}`, { state: { doc } })}
               className="library-row"
             >
-              <td>
+              <td onClick={() => navigate(`/workspace/${doc.id}`, { state: { doc } })}>
                 <div className="doc-name-cell">
                   <span className="doc-name">{doc.name}</span>
                 </div>
               </td>
-              <td>
+              <td onClick={() => navigate(`/workspace/${doc.id}`, { state: { doc } })}>
                 <span className={`type-badge ${doc.type?.toLowerCase()}`}>
                   {getTypeIcon(doc.type)}
                   {doc.type}
                 </span>
               </td>
-              <td>
+              <td onClick={() => navigate(`/workspace/${doc.id}`, { state: { doc } })}>
                 <span className="date-text">{new Date(doc.created_at).toLocaleDateString()}</span>
               </td>
-              <td>
+              <td onClick={() => navigate(`/workspace/${doc.id}`, { state: { doc } })}>
                 <span className="status-badge processed">
                   <CheckCircle2 size={12} />
                   Processed
                 </span>
               </td>
-              <td>
+              <td onClick={() => navigate(`/workspace/${doc.id}`, { state: { doc } })}>
                 <div className="artifact-group">
                   {hasArtifact(doc, 'summary') && (
                     <div className="artifact-icon" title="Summary Ready">
@@ -116,11 +119,17 @@ const DocumentLibrary = ({ documents, loading, onDelete }) => {
               </td>
               <td className="text-right">
                 <div className="row-actions">
-                  <button className="action-btn-circle" onClick={(e) => {
-                    e.stopPropagation();
-                    // onDelete(doc.id)
-                  }}>
-                    <MoreVertical size={16} />
+                  <button 
+                    className="action-btn-circle delete" 
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      console.log("LOG: Delete button clicked for doc:", doc.id);
+                      onDelete(doc.id);
+                    }}
+                  >
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </td>
@@ -247,11 +256,19 @@ const DocumentLibrary = ({ documents, loading, onDelete }) => {
           color: var(--text-muted);
           cursor: pointer;
           transition: all var(--duration-fast) var(--ease-out);
+          position: relative;
+          z-index: 100;
+          pointer-events: auto !important;
         }
 
         .action-btn-circle:hover {
           background: var(--bg-surface);
           color: var(--text-primary);
+        }
+
+        .action-btn-circle.delete:hover {
+          background: #fee2e2;
+          color: #ef4444;
         }
 
         .library-empty {

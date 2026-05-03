@@ -1,49 +1,37 @@
-from pydantic import ValidationError
-from langchain.output_parsers import PydanticOutputParser
-from langchain_core.exceptions import OutputParserException
-from app.schemas import Quiz
-from app.services.llm_service import llm_full_response
-from app.config import OLLAMA_URL,MODEL_NAME
-from fastapi import HTTPException
-parser = PydanticOutputParser(pydantic_object=Quiz)
+import json
+from app.services.llm_service import llm_response, llm_full_response
+from app.config import MODEL_NAME
 
-async def generate_quiz(context:str,difficulty):
-    format_instructions = parser.get_format_instructions()
-    prompt = """
-You are an expert quiz creator. Your task is to generate multiple-choice questions that test understanding of the content provided below.
+async def generate_quiz_stream(context: str, difficulty: str):
+    prompt = f"""
+You are an expert examiner. Generate a multiple-choice quiz based ONLY on the content below.
 
-## Instructions
+## RULES:
+1. QUANTITY: Max 10 questions.
+2. DIFFICULTY: {difficulty}
+3. FORMAT: RAW JSON ONLY. Start with '{{' and end with '}}'.
+   
+SCHEMA:
+{{
+  "questions": [
+    {{
+      "question": "The question text",
+      "options": ["Opt 1", "Opt 2", "Opt 3", "Opt 4"],
+      "correct_answer": "The exact correct option string",
+      "explanation": "Brief explanation"
+    }}
+  ]
+}}
 
-### Question Design
-- Focus on key concepts, definitions, and important relationships — not trivial or peripheral details.
-- Vary difficulty across recall, application, and reasoning question types.
-- Each question must be self-contained and unambiguous.
-
-### Answer Options
-- Each question must have exactly 4 options labeled A, B, C, and D.
-- Exactly one option must be unambiguously correct.
-- The remaining three must be plausible distractors — clearly incorrect upon careful reading, but not obviously wrong at a glance.
-- Never write questions where 0 or 2+ options could be considered correct.
-
-### Grounding
-- Base every question and every option strictly on the provided content.
-- Do not introduce facts, definitions, or claims not present in the content.
-
----
-
-Difficulty: {difficulty}
-
-Content:
+CONTENT:
 {context}
-
-Output Format:
-{format_instructions}
 """
-    final_prompt = prompt.format(context=context,format_instructions=format_instructions,difficulty=difficulty)
-    try :
-        response = await llm_full_response(final_prompt,model=MODEL_NAME,url=OLLAMA_URL)
-        return parser.parse(response)
-    except (ValidationError, OutputParserException) as e:
-        raise HTTPException(status_code=422, detail=f"AI returned malformed quiz JSON: {str(e)}")
+    async for chunk in llm_response(prompt, MODEL_NAME):
+        yield chunk
+
+async def generate_quiz(context:str, difficulty, retry=True):
+    prompt = f"Generate a {difficulty} quiz in JSON format based on: {context}"
+    response = await llm_full_response(prompt, MODEL_NAME)
+    return response
 
 

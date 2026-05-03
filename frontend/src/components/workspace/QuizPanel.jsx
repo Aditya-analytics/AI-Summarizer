@@ -47,7 +47,7 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
             className="select-mini" 
             value={difficulty} 
             onChange={e => setDifficulty(e.target.value)}
-            disabled={loading || quiz}
+            disabled={loading}
           >
             <option value="easy">Easy</option>
             <option value="medium">Medium</option>
@@ -79,6 +79,22 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
 
         {quiz && !loading && (
           <div className="quiz-scroll">
+            {score === null && (
+              <div className="quiz-progress-container">
+                <div className="progress-stats">
+                  <span>Question {Object.keys(answers).length} of {quiz.questions.length}</span>
+                  <span>{Math.round((Object.keys(answers).length / quiz.questions.length) * 100)}% Complete</span>
+                </div>
+                <div className="progress-track">
+                  <motion.div 
+                    className="progress-fill"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(Object.keys(answers).length / quiz.questions.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             {score !== null && (
               <motion.div 
                 initial={{ scale: 0.95, opacity: 0 }}
@@ -187,6 +203,38 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
         .opt-icon { margin-left: auto; margin-top: 2px; flex-shrink: 0; }
 
         .explanation { margin-top: 16px; padding: 16px; background: var(--bg-surface); border-radius: 8px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; border-left: 4px solid var(--brand-primary); }
+
+        .quiz-progress-container {
+          margin-bottom: 32px;
+          background: var(--bg-surface);
+          padding: 20px;
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--border-subtle);
+        }
+
+        .progress-stats {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--text-muted);
+          margin-bottom: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .progress-track {
+          height: 8px;
+          background: var(--bg-elevated);
+          border-radius: 4px;
+          overflow: hidden;
+        }
+
+        .progress-fill {
+          height: 100%;
+          background: var(--brand-gradient);
+          border-radius: 4px;
+        }
 
         .quiz-footer { margin-top: 40px; }
         .btn-primary-large { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px; background: var(--brand-primary); color: white; border: none; border-radius: var(--radius-lg); font-weight: 700; cursor: pointer; }

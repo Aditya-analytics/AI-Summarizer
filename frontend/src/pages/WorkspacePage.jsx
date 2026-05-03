@@ -12,14 +12,16 @@ import NotesPanel from '../components/workspace/NotesPanel';
 // Services
 import api from '../services/api';
 import { readStream } from '../utils/streamReader';
+import { useWorkspace } from '../context/WorkspaceContext';
 
 const WorkspacePage = () => {
+  const { documents, sessionCache, updateCache, fetchDocuments } = useWorkspace();
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
   const [doc, setDoc] = useState(location.state?.doc || null);
   const [activePanel, setActivePanel] = useState(location.state?.activeTab || 'summary');
-  
+
   // Summary State
   const [summary, setSummary] = useState('');
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -43,25 +45,72 @@ const WorkspacePage = () => {
   const [notesError, setNotesError] = useState('');
   const [notesLength, setNotesLength] = useState('detailed');
 
+  // Clear quiz when difficulty changes to allow new generation
+  useEffect(() => {
+    setQuiz(null);
+  }, [difficulty]);
+
   // Raw Text State
   const [rawText, setRawText] = useState('');
   const [rawTextLoading, setRawTextLoading] = useState(false);
 
-  // Initial Data Fetch
+  // Reset state when document changes
   useEffect(() => {
-    if (!doc && id) {
-      const fetchDoc = async () => {
-        try {
-          const docs = await api.getDocuments();
-          const found = docs.find(d => d.id === parseInt(id));
-          if (found) setDoc(found);
-        } catch (err) {
-          console.error("Failed to fetch document", err);
-        }
-      };
-      fetchDoc();
+    if (doc?.id) {
+      setSummary('');
+      setMessages([]);
+      setQuiz(null);
+      setNotes('');
+      setRawText('');
+      setSummaryError('');
+      setQuizError('');
+      setNotesError('');
     }
-  }, [id, doc]);
+  }, [doc?.id]);
+
+  // Initial Data Fetch & Artifact Rehydration
+  useEffect(() => {
+    // 1. If we don't have the document object yet, find it in the global list
+    if (!doc && documents.length > 0) {
+      const found = documents.find(d => d.id === parseInt(id));
+      if (found) {
+        setDoc(found);
+      }
+      return;
+    }
+
+    // 2. If we have the doc, proceed with rehydration
+    if (doc) {
+      const cache = sessionCache[doc.id];
+      if (cache) {
+        if (cache.summary) setSummary(cache.summary);
+        if (cache.notes) setNotes(cache.notes);
+        if (cache.quiz) setQuiz(cache.quiz);
+      }
+
+      // Fetch from Database ONLY if we don't have a summary yet
+      if (!cache || (!cache.summary && !cache.notes)) {
+        const fetchArtifacts = async () => {
+          try {
+            const data = await api.getArtifacts(doc.id);
+            if (data.summary) setSummary(data.summary);
+            if (data.notes) setNotes(data.notes);
+            if (data.quiz) setQuiz(data.quiz);
+            if (data.chat && data.chat.length > 0) setMessages(data.chat);
+
+            updateCache(doc.id, {
+              summary: data.summary,
+              notes: data.notes,
+              quiz: data.quiz
+            });
+          } catch (err) {
+            console.error("Failed to rehydrate artifacts", err);
+          }
+        };
+        fetchArtifacts();
+      }
+    }
+  }, [id, doc]); // ONLY trigger when document context changes
 
   // Logic: Generate Summary
   const handleGenerateSummary = async () => {
@@ -69,9 +118,15 @@ const WorkspacePage = () => {
     setSummaryLoading(true);
     setSummary('');
     setSummaryError('');
+    let fullText = '';
     try {
       const reader = await api.getSummary(doc.id, summaryLength);
-      await readStream(reader, (chunk) => setSummary(prev => prev + chunk));
+      await readStream(reader, (chunk) => {
+        fullText += chunk;
+        setSummary(prev => prev + chunk);
+      });
+      updateCache(doc.id, { summary: fullText });
+      fetchDocuments(); // Refresh dashboard icons
     } catch (err) {
       setSummaryError(err.message || "Failed to generate summary.");
     } finally {
@@ -86,7 +141,7 @@ const WorkspacePage = () => {
     setMessages(prev => [...prev, userMsg]);
     setChatInput('');
     setChatLoading(true);
-    
+
     const aiMsg = { role: 'ai', content: '' };
     setMessages(prev => [...prev, aiMsg]);
 
@@ -95,7 +150,12 @@ const WorkspacePage = () => {
       await readStream(reader, (chunk) => {
         setMessages(prev => {
           const updated = [...prev];
-          updated[updated.length - 1].content += chunk;
+          const lastIndex = updated.length - 1;
+          // IMMUTABLE UPDATE: Copy the message object before modifying
+          updated[lastIndex] = {
+            ...updated[lastIndex],
+            content: updated[lastIndex].content + chunk
+          };
           return updated;
         });
       });
@@ -115,10 +175,34 @@ const WorkspacePage = () => {
   const handleGenerateQuiz = async () => {
     if (!doc) return;
     setQuizLoading(true);
+    setQuiz(null);
     setQuizError('');
+    let fullJson = '';
     try {
-      const data = await api.getQuiz(doc.id, difficulty);
-      setQuiz(data);
+      const reader = await api.getQuiz(doc.id, difficulty);
+      await readStream(reader, (chunk) => {
+        fullJson += chunk;
+      });
+
+      try {
+        // Robust JSON extraction: Find content between first { and last }
+        const start = fullJson.indexOf('{');
+        const end = fullJson.lastIndexOf('}');
+        
+        if (start === -1 || end === -1) {
+          throw new Error("Could not find quiz data in response.");
+        }
+        
+        const cleanJson = fullJson.substring(start, end + 1);
+        const parsed = JSON.parse(cleanJson);
+        
+        setQuiz(parsed);
+        updateCache(doc.id, { quiz: parsed });
+        fetchDocuments(); // Refresh dashboard icons
+      } catch (parseErr) {
+        console.error("Quiz Parse Error:", parseErr, fullJson);
+        throw new Error("AI returned invalid quiz format. Please try again.");
+      }
     } catch (err) {
       setQuizError(err.message || "Failed to generate quiz.");
     } finally {
@@ -132,9 +216,15 @@ const WorkspacePage = () => {
     setNotesLoading(true);
     setNotes('');
     setNotesError('');
+    let fullText = '';
     try {
       const reader = await api.getNotes(doc.id, notesLength);
-      await readStream(reader, (chunk) => setNotes(prev => prev + chunk));
+      await readStream(reader, (chunk) => {
+        fullText += chunk;
+        setNotes(prev => prev + chunk);
+      });
+      updateCache(doc.id, { notes: fullText });
+      fetchDocuments(); // Refresh dashboard icons
     } catch (err) {
       setNotesError(err.message || "Failed to generate notes.");
     } finally {
@@ -164,10 +254,10 @@ const WorkspacePage = () => {
 
   return (
     <div className="workspace-root">
-      <WorkspaceSidebar 
-        activePanel={activePanel} 
-        setActivePanel={setActivePanel} 
-        docName={doc.name} 
+      <WorkspaceSidebar
+        activePanel={activePanel}
+        setActivePanel={setActivePanel}
+        docName={doc?.name || 'Loading...'}
       />
 
       <main className="workspace-main">
@@ -181,29 +271,32 @@ const WorkspacePage = () => {
               transition={{ duration: 0.2 }}
               className="panel-wrapper"
             >
+
               {activePanel === 'summary' && (
-                <SummaryPanel 
-                  summary={summary} 
-                  loading={summaryLoading} 
+                <SummaryPanel
+                  summary={summary}
+                  loading={summaryLoading}
                   onGenerate={handleGenerateSummary}
                   length={summaryLength}
                   setLength={setSummaryLength}
                   error={summaryError}
+                  docUrl={doc?.name}
                 />
               )}
 
               {activePanel === 'chat' && (
-                <ChatPanel 
-                  messages={messages} 
-                  input={chatInput} 
-                  setInput={setChatInput} 
+                <ChatPanel
+                  messages={messages}
+                  input={chatInput}
+                  setInput={setChatInput}
                   onSend={handleSendMessage}
                   loading={chatLoading}
+                  docUrl={doc?.name}
                 />
               )}
 
               {activePanel === 'quiz' && (
-                <QuizPanel 
+                <QuizPanel
                   quiz={quiz}
                   loading={quizLoading}
                   onGenerate={handleGenerateQuiz}
@@ -214,13 +307,14 @@ const WorkspacePage = () => {
               )}
 
               {activePanel === 'notes' && (
-                <NotesPanel 
+                <NotesPanel
                   notes={notes}
                   loading={notesLoading}
                   onGenerate={handleGenerateNotes}
                   length={notesLength}
                   setLength={setNotesLength}
                   error={notesError}
+                  docUrl={doc?.name}
                 />
               )}
 
