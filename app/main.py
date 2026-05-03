@@ -32,11 +32,15 @@ def create_app():
     app = FastAPI(title="AI Learning Workspace 🤖", lifespan=lifespan)
     
     import os
+    # Production Hardening: Strictly allow authorized origins
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    origins = [url.strip() for url in frontend_url.split(",")]
+    if "http://localhost:5173" not in origins:
+        origins.append("http://localhost:5173")
     
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[frontend_url, "http://localhost:5173"],
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
