@@ -2,7 +2,6 @@ from app.data.models import QAHistory
 from app.schemas import BasicConfigs
 from app.schemas import QuizConfig
 from app.services.notes_service import generate_notes_prompt
-from app.services.quiz_service import generate_quiz
 from app.helper.auth import get_current_user
 from app.data.models import Document
 from sqlalchemy import select
@@ -107,9 +106,9 @@ async def get_summary(config: BasicConfigs, document_id: int, db: AsyncSession =
             Output.document_id == document_id,
             Output.style == config.length,
             Output.language == config.language
-        )
+        ).order_by(Output.id.desc())
     )
-    cache = result.scalar_one_or_none()
+    cache = result.scalars().first()
     if cache:
         return cache
         
@@ -174,9 +173,9 @@ async def get_quizes(config: QuizConfig, document_id: int, request: Request, db:
         select(Output.quiz).where(
             Output.document_id == document_id,
             Output.difficulty == config.difficulty
-        )
+        ).order_by(Output.id.desc())
     )
-    cache = result.scalar_one_or_none()
+    cache = result.scalars().first()
     if cache:
         try:
             return json.loads(cache)

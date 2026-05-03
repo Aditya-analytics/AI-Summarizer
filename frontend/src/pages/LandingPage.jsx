@@ -4,58 +4,88 @@ import {
   Sparkles, ArrowRight, Search, Layout, BookOpen, 
   MessageSquare, Bell, Star, FileText, PlayCircle, 
   Globe, Zap, Book, GraduationCap, Microscope, 
-  ListChecks, Check, Code
+  ListChecks, Check, Code, Home, Users, Settings, Plus
 } from 'lucide-react';
 
 const MockUI = () => (
-  <div className="mock-ui-v2">
-    <div className="mock-sidebar-v2">
-      <div className="mock-logo-v2">
-        <div className="w-6 h-6 rounded bg-orange-500 flex items-center justify-center text-white text-[10px] font-bold">
-          <Sparkles size={12} />
-        </div> 
-        <span style={{ fontWeight: 800, fontSize: '14px', marginLeft: '4px' }}>Nova</span>
+  <div className="mock-ui-v3">
+    {/* Sidebar */}
+    <div className="mock-sidebar-v3">
+      <div className="mock-logo-v3">
+        <div className="logo-icon-sm">
+          <Sparkles size={14} fill="currentColor" />
+        </div>
+        <span className="logo-text-sm">Nova</span>
       </div>
-      <div className="mock-search-v2"><Search size={12} /> Search... <span style={{ marginLeft: 'auto', opacity: 0.5 }}>⌘ K</span></div>
-      <div className="mock-nav-v2">
-        <div className="mock-nav-item active"><Layout size={14} /> Dashboard</div>
-        <div className="mock-nav-item"><BookOpen size={14} /> My Library</div>
-        <div className="mock-nav-item"><MessageSquare size={14} /> AI Tutor</div>
-        <div className="mock-nav-item"><Bell size={14} /> Notifications <span className="mock-badge">4</span></div>
+      
+      <div className="mock-nav-v3">
+        <div className="mock-nav-item"><Home size={16} /> Home</div>
+        <div className="mock-nav-item active"><Layout size={16} /> Dashboard</div>
+        <div className="mock-nav-item"><BookOpen size={16} /> My Library</div>
+        <div className="mock-nav-item"><Users size={16} /> Community <span className="soon-badge">SOON</span></div>
+        <div className="mock-nav-item"><Settings size={16} /> Settings</div>
+      </div>
+
+      <div className="mock-user-profile">
+        <div className="avatar-sm">D</div>
+        <div className="user-info-sm">
+          <p className="user-name-sm">Demo</p>
+          <p className="user-plan-sm">Pro Plan</p>
+        </div>
       </div>
     </div>
-    <div className="mock-center-pane">
-      <div className="pane-header">
-        <div className="pane-tab active"><Star size={12} /> Home</div>
-        <div className="pane-tab">Research.pdf</div>
-      </div>
-      <div className="pane-content">
-        <div className="mock-header-v2">
-          <span>MONDAY, 2026</span>
-          <h2>Ready to master your materials?</h2>
+
+    {/* Main Content */}
+    <div className="mock-main-v3">
+      <div className="mock-header-v3">
+        <h2 className="header-title">Overview</h2>
+        <div className="header-actions-v3">
+          <div className="mock-search-v3"><Search size={14} /> Search...</div>
+          <div className="icon-btn-sm"><Bell size={16} /></div>
+          <button className="btn-new-doc"><Plus size={16} /> New Document</button>
         </div>
-        <div className="mock-input-v2">
-          <div className="mock-input-box">
-            <Search size={14} />
-            <input type="text" placeholder="Ask about your research..." readOnly />
-            <button className="mock-send-v2"><ArrowRight size={14} /></button>
+      </div>
+
+      <div className="mock-body-v3">
+        <div className="dashboard-badge">INTELLIGENCE DASHBOARD</div>
+        <h1 className="welcome-text">Welcome back, Researcher</h1>
+        <p className="welcome-sub">Your AI Learning Workspace is synchronized and ready.</p>
+
+        <div className="stats-grid-sm">
+          <div className="stat-card-sm">
+            <div className="stat-top"><span>TOTAL INSIGHTS</span><Zap size={14} className="text-orange" /></div>
+            <div className="stat-value">7</div>
+            <div className="stat-trend">+12% this week</div>
+          </div>
+          <div className="stat-card-sm">
+            <div className="stat-top"><span>DOCUMENTS</span><FileText size={14} className="text-orange" /></div>
+            <div className="stat-value">1</div>
+            <div className="stat-trend">High-fidelity PDFs</div>
+          </div>
+          <div className="stat-card-sm">
+            <div className="stat-top"><span>WEB & MEDIA</span><Globe size={14} className="text-orange" /></div>
+            <div className="stat-value">6</div>
+            <div className="stat-trend">Articles & Videos</div>
           </div>
         </div>
-        <div className="mock-grid-v2">
-          <div className="mock-card-v2">Summary: Quantum Physics</div>
-          <div className="mock-card-v2">Quiz: Organic Chemistry</div>
+
+        <div className="recent-docs-sm">
+          <div className="section-header-sm">
+            <h3>Recent Documents</h3>
+            <button className="btn-view-all">View All Library <ArrowRight size={12} /></button>
+          </div>
+          <div className="mock-table-v3">
+            <div className="table-header-v3">
+              <span>NAME</span><span>TYPE</span><span>UPLOADED</span><span>STATUS</span>
+            </div>
+            <div className="table-row-v3">
+              <span className="doc-name">probability_statistics_guide.pdf</span>
+              <span className="type-badge">PDF</span>
+              <span>5/2/2026</span>
+              <span className="status-badge">Processed</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div className="mock-right-pane">
-      <div className="right-header">Recent Chats</div>
-      <div className="chat-item">
-        <div className="chat-dot"></div>
-        <div><p className="chat-title">Quantum Mechanics</p><p className="chat-sub">2 min ago</p></div>
-      </div>
-      <div className="chat-item">
-        <div className="chat-dot purple"></div>
-        <div><p className="chat-title">Photosynthesis Quiz</p><p className="chat-sub">1 hour ago</p></div>
       </div>
     </div>
   </div>
