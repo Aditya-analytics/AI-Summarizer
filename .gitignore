@@ -32,7 +32,6 @@ scratch/
 brain/
 chroma_db/
 workspace.db
-requirements.txt
 node_modules/
 dist/
 build/
