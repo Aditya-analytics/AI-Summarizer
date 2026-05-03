@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from datetime import datetime, timezone
-from sqlalchemy import ForeignKey,UniqueConstraint
+from sqlalchemy import ForeignKey, UniqueConstraint, DateTime
 
 class Base(DeclarativeBase):
     pass
@@ -22,9 +22,10 @@ class Document(Base):
     __tablename__ = "documents"
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column() # User-defined or fallback name
     type: Mapped[str]
     source: Mapped[str] = mapped_column() # The "Passport"
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="documents")
@@ -82,7 +83,7 @@ class QAHistory(Base):
     document_id: Mapped[int] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"))
     question: Mapped[str]
     answer: Mapped[str]
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     
     document: Mapped["Document"] = relationship(back_populates="qa_history")

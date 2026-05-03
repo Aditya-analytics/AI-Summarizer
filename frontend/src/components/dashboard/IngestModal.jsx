@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  UploadCloud, 
-  Link as LinkIcon, 
-  Video, 
-  FileText, 
-  Loader2, 
+import {
+  X,
+  UploadCloud,
+  Link as LinkIcon,
+  Video,
+  FileText,
+  Loader2,
   AlertCircle,
   Settings2,
   ChevronRight,
@@ -44,7 +44,7 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
       console.log("LOG: Validation Error:", errorMsg);
       return;
     }
-    
+
     onIngest({ type: activeTab, value: inputValue, length: summaryLength, language });
   };
 
@@ -68,15 +68,15 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
 
   return (
     <div className="modal-root">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="modal-backdrop"
         onClick={onClose}
       />
-      
-      <motion.div 
+
+      <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -97,7 +97,7 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
         <div className="modal-body">
           <div className="tabs-container">
             {tabs.map(tab => (
-              <button 
+              <button
                 key={tab.id}
                 className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
@@ -111,14 +111,14 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
           <div className="main-config">
             <div className="input-section">
               {activeTab === 'pdf' ? (
-                <div 
+                <div
                   className="drop-zone"
                   onClick={() => !isUploading && fileInputRef.current?.click()}
                 >
-                  <input 
+                  <input
                     ref={fileInputRef}
-                    type="file" 
-                    accept=".pdf" 
+                    type="file"
+                    accept=".pdf"
                     style={{ display: 'none' }}
                     onChange={handleFileChange}
                   />
@@ -132,7 +132,7 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
                     {activeTab === 'url' ? 'Article URL' : activeTab === 'youtube' ? 'YouTube Video URL' : 'Paste Text Content'}
                   </label>
                   {activeTab === 'text' ? (
-                    <textarea 
+                    <textarea
                       className="input-textarea"
                       placeholder="Paste your content here..."
                       value={inputValue}
@@ -140,8 +140,8 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
                     />
                   ) : (
                     <div className="input-wrapper">
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         className="input-text"
                         placeholder={activeTab === 'url' ? 'https://example.com/article' : 'https://youtube.com/watch?v=...'}
                         value={inputValue}
@@ -162,7 +162,7 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
                 <Settings2 size={16} />
                 <span>Output Config</span>
               </div>
-              
+
               <div className="setting-item">
                 <label>Summary Depth</label>
                 <select value={summaryLength} onChange={e => setSummaryLength(e.target.value)}>
@@ -186,7 +186,7 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
 
           <AnimatePresence>
             {(isUploading || streamingText) && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -220,9 +220,9 @@ const IngestModal = ({ isOpen, onClose, onIngest, isUploading, streamingText, er
         <div className="modal-footer">
           <button className="btn-secondary" onClick={onClose} disabled={isUploading}>Cancel</button>
           {activeTab !== 'pdf' && (
-            <button 
-              className="btn-primary" 
-              onClick={handleSubmit} 
+            <button
+              className="btn-primary"
+              onClick={handleSubmit}
               disabled={isUploading || !inputValue.trim()}
               style={{ cursor: isUploading || !inputValue.trim() ? 'not-allowed' : 'pointer' }}
             >

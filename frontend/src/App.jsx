@@ -17,6 +17,8 @@ const AuthPage = lazy(() => import('./pages/AuthPage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const LibraryPage = lazy(() => import('./pages/LibraryPage'));
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 const PageLoader = () => (
   <div className="loader-full">
@@ -61,6 +63,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <WorkspacePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />

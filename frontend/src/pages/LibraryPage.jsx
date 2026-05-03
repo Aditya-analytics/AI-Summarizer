@@ -14,7 +14,7 @@ const LibraryPage = () => {
   return (
     <div className="library-root">
       <Sidebar />
-      
+
       <main className="library-content">
         <TopHeader title="Research Library" />
 
@@ -29,9 +29,9 @@ const LibraryPage = () => {
           </header>
 
           <section className="full-library">
-            <DocumentLibrary 
-              documents={documents} 
-              loading={loading} 
+            <DocumentLibrary
+              documents={documents}
+              loading={loading}
               onDelete={deleteDocument}
             />
           </section>

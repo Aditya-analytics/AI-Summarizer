@@ -1,9 +1,10 @@
 from pydantic import BaseModel,Field
-from typing import Literal
+from typing import Literal, Optional
 
 class BasicConfigs(BaseModel):
     length: Literal["short", "standard", "detailed"] = "standard"
     language : Literal["English","Hindi"] = "English"
+    doc_name: Optional[str] = None
     
 class Prompt(BasicConfigs): 
     text : str = Field(min_length=1)

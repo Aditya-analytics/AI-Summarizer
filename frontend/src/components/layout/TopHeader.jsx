@@ -1,16 +1,42 @@
-import { Search, Bell, Command, Plus, Menu } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Bell, Command, Plus, User, LogOut, Settings, CreditCard, CheckCircle2, Clock, ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useWorkspace } from '../../context/WorkspaceContext';
 
-const TopHeader = ({ title, onNewDocument, onToggleSidebar }) => {
+const TopHeader = ({ title, onNewDocument, onToggleSidebar, onBack }) => {
+  const navigate = useNavigate();
+  const { clearWorkspace } = useWorkspace();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  
+  const handleLogout = () => {
+    clearWorkspace();
+    localStorage.removeItem('nova_token');
+    localStorage.removeItem('nova_user_email');
+    navigate('/auth');
+  };
+
+  const notifications = [
+    { id: 2, title: 'New Feature', desc: 'Try the new "Learning Quiz" mode in your workspace.', icon: Clock, time: '1h ago', unread: true },
+    { id: 3, title: 'System Update', desc: 'Nova v2.5 is now live with Gemini Flash-Lite.', icon: Settings, time: '5h ago', unread: false },
+  ];
+
   return (
     <header className="nova-header">
       <div className="header-left">
-        <button className="mobile-sidebar-toggle" onClick={onToggleSidebar}>
-          <div className="menu-icon-v2">
-            <div className="line"></div>
-            <div className="line"></div>
-          </div>
-        </button>
+        {onBack ? (
+          <button className="header-back-btn" onClick={onBack}>
+            <ArrowLeft size={20} />
+          </button>
+        ) : (
+          <button className="mobile-sidebar-toggle" onClick={onToggleSidebar}>
+            <div className="menu-icon-v2">
+              <div className="line"></div>
+              <div className="line"></div>
+            </div>
+          </button>
+        )}
         <h1 className="header-title">{title}</h1>
       </div>
 
@@ -25,10 +51,50 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar }) => {
         </div>
 
         <div className="header-actions">
-          <button className="icon-btn">
-            <Bell size={20} />
-            <span className="notification-dot" />
-          </button>
+          <div className="popover-wrapper">
+            <button 
+              className={`icon-btn ${showNotifications ? 'active' : ''}`}
+              onClick={() => { setShowNotifications(!showNotifications); setShowProfile(false); }}
+            >
+              <Bell size={20} />
+              <span className="notification-dot" />
+            </button>
+            
+            <AnimatePresence>
+              {showNotifications && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="popover notifications-popover"
+                >
+                  <div className="popover-header">
+                    <h3>Notifications</h3>
+                    <button>Mark all as read</button>
+                  </div>
+                  <div className="popover-content">
+                    {notifications.map(n => (
+                      <div key={n.id} className={`notification-item ${n.unread ? 'unread' : ''}`}>
+                        <div className="notif-icon">
+                          <n.icon size={16} />
+                        </div>
+                        <div className="notif-info">
+                          <div className="notif-title-row">
+                            <span className="notif-title">{n.title}</span>
+                            <span className="notif-time">{n.time}</span>
+                          </div>
+                          <p className="notif-desc">{n.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="popover-footer">
+                    <button>View all notifications</button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           
           <motion.button 
             whileHover={{ scale: 1.02 }}
@@ -39,6 +105,56 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar }) => {
             <Plus size={18} />
             <span>New Document</span>
           </motion.button>
+
+          <div className="popover-wrapper">
+            <button 
+              className={`profile-trigger ${showProfile ? 'active' : ''}`}
+              onClick={() => { setShowProfile(!showProfile); setShowNotifications(false); }}
+            >
+              <div className="avatar">R</div>
+            </button>
+
+            <AnimatePresence>
+              {showProfile && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="popover profile-popover"
+                >
+                  <div className="user-info">
+                    <div className="avatar-lg">R</div>
+                    <div className="user-details">
+                      <h4>Researcher</h4>
+                      <p>demo@gmail.com</p>
+                    </div>
+                  </div>
+                  <div className="popover-divider" />
+                  <div className="popover-menu">
+                    <button className="menu-item" onClick={() => { navigate('/profile'); setShowProfile(false); }}>
+                      <User size={16} />
+                      <span>My Profile</span>
+                    </button>
+                    <button className="menu-item" onClick={() => { navigate('/settings'); setShowProfile(false); }}>
+                      <Settings size={16} />
+                      <span>Settings</span>
+                    </button>
+                    <button className="menu-item" onClick={() => { navigate('/settings'); setShowProfile(false); }}>
+                      <CreditCard size={16} />
+                      <span>Billing</span>
+                    </button>
+                  </div>
+                  <div className="popover-divider" />
+                  <div className="popover-menu">
+                    <button className="menu-item logout" onClick={handleLogout}>
+                      <LogOut size={16} />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
@@ -55,6 +171,33 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar }) => {
           position: sticky;
           top: 0;
           z-index: 90;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .header-back-btn {
+          width: 42px;
+          height: 42px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-md);
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .header-back-btn:hover {
+          background: white;
+          border-color: var(--brand-primary);
+          color: var(--brand-primary);
+          box-shadow: var(--shadow-sm);
         }
 
         .header-title {
@@ -138,7 +281,7 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar }) => {
           transition: all var(--duration-fast) var(--ease-out);
         }
 
-        .icon-btn:hover {
+        .icon-btn:hover, .icon-btn.active {
           background: white;
           border-color: var(--brand-primary);
           color: var(--brand-primary);
@@ -168,7 +311,244 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar }) => {
           font-weight: 700;
           font-size: 14px;
           box-shadow: var(--shadow-md);
+          cursor: pointer;
+          transition: all var(--duration-fast) var(--ease-out);
         }
+
+        .header-btn-primary:hover {
+          transform: translateY(-2px) scale(1.02);
+          box-shadow: 0 10px 25px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.3);
+        }
+
+        /* Popover Styles */
+        .popover-wrapper {
+          position: relative;
+        }
+
+        .popover {
+          position: absolute;
+          top: calc(100% + 12px);
+          right: 0;
+          background: white;
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-xl);
+          box-shadow: var(--shadow-xl);
+          z-index: 100;
+          overflow: hidden;
+        }
+
+        .notifications-popover {
+          width: 360px;
+        }
+
+        .popover-header {
+          padding: 16px 20px;
+          border-bottom: 1px solid var(--border-subtle);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .popover-header h3 {
+          font-family: var(--font-display);
+          font-size: 16px;
+          font-weight: 800;
+        }
+
+        .popover-header button {
+          background: none;
+          border: none;
+          color: var(--brand-primary);
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .popover-content {
+          max-height: 400px;
+          overflow-y: auto;
+        }
+
+        .notification-item {
+          padding: 16px 20px;
+          display: flex;
+          gap: 16px;
+          border-bottom: 1px solid var(--border-subtle);
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+          background: var(--bg-surface);
+        }
+
+        .notification-item.unread {
+          background: hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.02);
+        }
+
+        .notif-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          background: var(--bg-surface);
+          color: var(--brand-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .notif-info {
+          flex: 1;
+        }
+
+        .notif-title-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 4px;
+        }
+
+        .notif-title {
+          font-weight: 700;
+          font-size: 14px;
+          color: var(--text-primary);
+        }
+
+        .notif-time {
+          font-size: 11px;
+          color: var(--text-muted);
+        }
+
+        .notif-desc {
+          font-size: 13px;
+          color: var(--text-secondary);
+          line-height: 1.4;
+        }
+
+        .popover-footer {
+          padding: 12px;
+          text-align: center;
+          border-top: 1px solid var(--border-subtle);
+        }
+
+        .popover-footer button {
+          width: 100%;
+          padding: 8px;
+          background: none;
+          border: none;
+          color: var(--text-muted);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        /* Profile Popover */
+        .profile-trigger {
+          width: 42px;
+          height: 42px;
+          border-radius: var(--radius-md);
+          border: 1px solid var(--border-subtle);
+          background: var(--bg-surface);
+          padding: 3px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .profile-trigger:hover, .profile-trigger.active {
+          border-color: var(--brand-primary);
+          background: white;
+        }
+
+        .avatar {
+          width: 100%;
+          height: 100%;
+          background: var(--brand-gradient);
+          border-radius: 6px;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 16px;
+        }
+
+        .profile-popover {
+          width: 240px;
+          padding: 8px;
+        }
+
+        .user-info {
+          padding: 12px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .avatar-lg {
+          width: 40px;
+          height: 40px;
+          background: var(--brand-gradient);
+          border-radius: 10px;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 18px;
+        }
+
+        .user-details h4 {
+          font-size: 14px;
+          font-weight: 800;
+          color: var(--text-primary);
+        }
+
+        .user-details p {
+          font-size: 12px;
+          color: var(--text-muted);
+        }
+
+        .popover-divider {
+          height: 1px;
+          background: var(--border-subtle);
+          margin: 8px 0;
+        }
+
+        .popover-menu {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .menu-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          background: none;
+          border: none;
+          border-radius: 8px;
+          color: var(--text-secondary);
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-align: left;
+        }
+
+        .menu-item:hover {
+          background: var(--bg-surface);
+          color: var(--text-primary);
+        }
+
+        .menu-item.logout {
+          color: #ef4444;
+        }
+
+        .menu-item.logout:hover {
+          background: #fef2f2;
+        }
+
         .mobile-sidebar-toggle {
           display: none;
           background: none;
@@ -197,6 +577,7 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar }) => {
           .mobile-sidebar-toggle { display: block; }
           .search-container { display: none; }
           .header-title { font-size: 20px; }
+          .notifications-popover { width: 300px; right: -80px; }
         }
       `}</style>
     </header>

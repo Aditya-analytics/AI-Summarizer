@@ -21,13 +21,13 @@ const Dashboard = () => {
   const { documents, loading, error, deleteDocument } = useWorkspace();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  const { 
-    isUploading, 
-    streamingText, 
-    uploadError, 
-    ingest, 
-    resetIngestion 
+
+  const {
+    isUploading,
+    streamingText,
+    uploadError,
+    ingest,
+    resetIngestion
   } = useIngestion();
 
   const handleOpenModal = () => {
@@ -48,11 +48,11 @@ const Dashboard = () => {
   return (
     <div className="dashboard-root">
       <Sidebar mobileOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      
+
       <main className="dashboard-content">
-        <TopHeader 
-          title="Overview" 
-          onNewDocument={handleOpenModal} 
+        <TopHeader
+          title="Overview"
+          onNewDocument={handleOpenModal}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
 
@@ -79,10 +79,10 @@ const Dashboard = () => {
                 <ArrowRight size={16} />
               </button>
             </div>
-            
-            <DocumentLibrary 
-              documents={Array.isArray(documents) ? documents.slice(0, 3) : []} 
-              loading={loading} 
+
+            <DocumentLibrary
+              documents={Array.isArray(documents) ? documents.slice(0, 3) : []}
+              loading={loading}
               onDelete={deleteDocument}
             />
           </section>
@@ -91,7 +91,7 @@ const Dashboard = () => {
 
       <AnimatePresence>
         {isModalOpen && (
-          <IngestModal 
+          <IngestModal
             isOpen={isModalOpen}
             onClose={handleCloseModal}
             onIngest={handleIngest}
@@ -124,95 +124,104 @@ const Dashboard = () => {
         }
 
         .page-intro {
-          margin-bottom: 40px;
+          margin-bottom: 48px;
+          border-bottom: 1px solid var(--border-subtle);
+          padding-bottom: 32px;
         }
 
         .intro-badge {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 6px 12px;
-          background: hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.08);
+          gap: 10px;
+          padding: 8px 16px;
+          background: hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.05);
           color: var(--brand-primary);
+          border: 1px solid hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.1);
           border-radius: var(--radius-full);
           font-size: 11px;
           font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 16px;
+          letter-spacing: 0.1em;
+          margin-bottom: 20px;
         }
 
         .intro-badge .dot {
-          width: 6px;
-          height: 6px;
+          width: 8px;
+          height: 8px;
           background: var(--brand-primary);
           border-radius: 50%;
+          box-shadow: 0 0 12px var(--brand-primary);
           animation: pulse 2s infinite;
         }
 
         .page-intro h2 {
           font-family: var(--font-display);
-          font-size: 32px;
+          font-size: 40px;
           font-weight: 800;
           color: var(--text-primary);
-          letter-spacing: -1px;
-          margin-bottom: 4px;
+          letter-spacing: -0.03em;
+          margin-bottom: 8px;
         }
 
         .page-intro p {
-          font-size: 16px;
+          font-size: 18px;
           color: var(--text-secondary);
+          font-weight: 500;
         }
 
         .library-section {
-          margin-top: 48px;
+          margin-top: 64px;
         }
 
         .section-header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
-          margin-bottom: 24px;
+          align-items: center;
+          margin-bottom: 32px;
         }
 
         .section-header h3 {
           font-family: var(--font-display);
-          font-size: 20px;
+          font-size: 24px;
           font-weight: 800;
           color: var(--text-primary);
           margin-bottom: 4px;
+          letter-spacing: -0.01em;
         }
 
         .section-header p {
-          font-size: 14px;
+          font-size: 15px;
           color: var(--text-muted);
+          font-weight: 500;
         }
 
         .view-all-btn {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           background: white;
           border: 1px solid var(--border-subtle);
-          padding: 8px 16px;
+          padding: 10px 20px;
           border-radius: var(--radius-md);
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 700;
           color: var(--text-secondary);
           cursor: pointer;
           transition: all 0.2s;
+          box-shadow: var(--shadow-sm);
         }
 
         .view-all-btn:hover {
           border-color: var(--brand-primary);
           color: var(--brand-primary);
-          box-shadow: var(--shadow-sm);
+          box-shadow: var(--shadow-md);
+          transform: translateY(-2px);
         }
 
         @keyframes pulse {
-          0% { transform: scale(0.95); opacity: 0.5; }
-          50% { transform: scale(1.1); opacity: 1; }
-          100% { transform: scale(0.95); opacity: 0.5; }
+          0% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.2); opacity: 1; }
+          100% { transform: scale(1); opacity: 0.6; }
         }
 
         /* Mobile Adjustments (Basic) */

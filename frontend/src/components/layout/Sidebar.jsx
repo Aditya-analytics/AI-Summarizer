@@ -18,13 +18,14 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
   const { clearWorkspace } = useWorkspace();
   const navigate = useNavigate();
   const location = useLocation();
-  const userEmail = localStorage.getItem('nova_user_email') || 'User';
-  const userName = userEmail.split('@')[0];
+  // For Demo/Production Showcase: Using hardcoded values
+  const userEmail = 'demo@gmail.com';
+  const userName = 'Researcher';
 
   const handleLogout = () => {
     clearWorkspace();
     localStorage.removeItem('nova_token');
-    localStorage.removeItem('nova_user_email');
+    localStorage.removeItem('nova_user_email'); 
     navigate('/auth');
   };
 
@@ -33,7 +34,7 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { id: 'library', label: 'My Library', icon: FileText, path: '/library' },
     { id: 'community', label: 'Community', icon: Users, path: '#', badge: 'Soon' },
-    { id: 'settings', label: 'Settings', icon: Settings, path: '#' },
+    { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
   ];
 
   return (
@@ -93,7 +94,7 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
 
         <div className="sidebar-footer">
           {!collapsed && (
-            <div className="user-profile">
+            <div className="user-profile" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
               <div className="user-avatar">
                 {userName[0].toUpperCase()}
               </div>

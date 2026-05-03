@@ -33,9 +33,13 @@ Distill the provided input text into a professional summary that strictly adhere
 
 SCRAPE_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
-SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./workspace.db"
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./workspace.db")
 
-SECRET_KEY = "f5c7dc159743731f155ea3722cd4c9793e94fd1ffad4faf798e06f22fa6eb8d1"
+# Supabase Credentials (for Storage & Auth)
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+
+SECRET_KEY = os.getenv("SECRET_KEY", "f5c7dc159743731f155ea3722cd4c9793e94fd1ffad4faf798e06f22fa6eb8d1")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

@@ -60,7 +60,7 @@ async def get_documents(
         
         response.append({
             "id": d.id,
-            "name": d.source,
+            "name": d.name, # Use the name field
             "type": d.type,
             "created_at": str(d.created_at),
             "artifacts": artifacts,
@@ -73,6 +73,7 @@ async def get_documents(
 
 async def _get_or_create_doc(source: str, doc_type: str, text: str,
                               user_id: int, db: AsyncSession,
+                              doc_name: str = None, # Added doc_name
                               length: str = None, language: str = None,
                               bgt: BackgroundTasks = None):
     """Finds or creates a Document. Returns (doc_id, cached_summary_or_None)."""
@@ -98,7 +99,15 @@ async def _get_or_create_doc(source: str, doc_type: str, text: str,
             return existing.id, cached  # cached may be None
         return existing.id, None
 
-    new_doc = Document(type=doc_type, source=source, user_id=user_id)
+    # Fallback name logic
+    final_name = doc_name or source
+
+    new_doc = Document(
+        type=doc_type, 
+        source=source, 
+        user_id=user_id,
+        name=final_name # Set the name
+    )
     new_doc.content_blob = DocumentContent(raw_text=text)
     db.add(new_doc)
     await db.commit()
@@ -118,6 +127,7 @@ async def summarize(
     source_key = user_input.text[:60].strip()
     doc_id, cache = await _get_or_create_doc(
         source_key, "TEXT", user_input.text, current_user.id, db,
+        doc_name=user_input.doc_name, # Pass doc_name
         length=user_input.length, language=user_input.language, bgt=bgt
     )
     if cache:
@@ -136,6 +146,7 @@ async def summarize_url(
     text = await scrape_url(user_input.url)
     doc_id, cache = await _get_or_create_doc(
         user_input.url, "URL", text, current_user.id, db,
+        doc_name=user_input.doc_name, # Pass doc_name
         length=user_input.length, language=user_input.language, bgt=bgt
     )
     if cache:
@@ -155,6 +166,7 @@ async def yt_summarize(
         text = await get_transcript(user_input.url)
         doc_id, cache = await _get_or_create_doc(
             user_input.url, "YOUTUBE", text, current_user.id, db,
+            doc_name=user_input.doc_name, # Pass doc_name
             length=user_input.length, language=user_input.language, bgt=bgt
         )
         if cache:
@@ -169,6 +181,7 @@ async def summarize_pdf(
     file: UploadFile = File(...),
     length: str = Form("standard"),
     language: str = Form("English"),
+    doc_name: str = Form(None), # Added doc_name Form field
     current_user = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -179,6 +192,7 @@ async def summarize_pdf(
         text = await extract_pdf_text(file)
         doc_id, cache = await _get_or_create_doc(
             file.filename, "PDF", text, current_user.id, db,
+            doc_name=doc_name, # Pass doc_name
             length=length, language=language, bgt=bgt
         )
         

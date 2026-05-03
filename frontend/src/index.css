@@ -199,7 +199,8 @@ body {
 
 .btn-primary-gradient:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.4);
+  box-shadow: 0 8px 24px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.4),
+              0 0 0 1px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.1);
 }
 
 .landing-root {
@@ -348,8 +349,10 @@ body {
 }
 
 .btn-primary-v2:hover {
-  border-color: var(--accent);
-  transform: translateY(-1px);
+  border-color: var(--brand-primary);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 30px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.35),
+              0 0 20px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.2);
 }
 
 /* ─── HERO ────────────────────────────────────── */
@@ -454,7 +457,7 @@ body {
 }
 
 .btn-filled-v2 {
-  background: var(--accent);
+  background: var(--brand-gradient);
   color: #fff;
   border: none;
   padding: 16px 36px;
@@ -465,15 +468,23 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s;
+  transition: all 0.3s var(--ease-out);
   font-family: inherit;
-  box-shadow: 0 4px 15px rgba(255, 120, 90, 0.25);
+  box-shadow: 0 4px 15px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.25);
+  animation: glow-pulse 3s infinite;
 }
 
 .btn-filled-v2:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 120, 90, 0.35);
-  background: #f06a5a;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.4),
+              0 0 20px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.3);
+  animation: none; /* Stop pulse on hover */
+}
+
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 0 0 hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.4); }
+  70% { box-shadow: 0 0 0 15px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0); }
+  100% { box-shadow: 0 0 0 0 hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0); }
 }
 
 /* ─── MOCKUP ──────────────────────────────────── */
@@ -2648,8 +2659,9 @@ body {
 }
 
 .pricing-card.featured .btn-pricing:hover {
-  box-shadow: 0 15px 30px rgba(234, 88, 12, 0.3);
-  transform: translateY(-2px);
+  box-shadow: 0 20px 40px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.25),
+              0 0 15px hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.2);
+  transform: translateY(-4px) scale(1.05);
 }
 
 @media (max-width: 1024px) {
