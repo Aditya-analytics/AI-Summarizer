@@ -32,19 +32,44 @@ def create_app():
     app = FastAPI(title="AI Learning Workspace 🤖", lifespan=lifespan)
     
     import os
-    # Production Hardening: Strictly allow authorized origins
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-    origins = [url.strip() for url in frontend_url.split(",")]
-    if "http://localhost:5173" not in origins:
-        origins.append("http://localhost:5173")
+    from fastapi.middleware.cors import CORSMiddleware
+    from starlette.middleware.base import BaseHTTPMiddleware
     
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # Custom Middleware to handle prefix-based CORS
+    class DynamicCORSMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            origin = request.headers.get("origin")
+            
+            # Handle Preflight (OPTIONS) requests
+            if request.method == "OPTIONS":
+                response = Response(status_code=204)
+                if self._is_allowed(origin):
+                    self._apply_cors_headers(response, origin)
+                return response
+            
+            response = await call_next(request)
+            if self._is_allowed(origin):
+                self._apply_cors_headers(response, origin)
+            return response
+
+        def _is_allowed(self, origin: str) -> bool:
+            if not origin: return False
+            frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+            allowed_prefixes = [p.strip() for p in frontend_url.split(",")]
+            # Always allow local dev
+            if "http://localhost:5173" not in allowed_prefixes:
+                allowed_prefixes.append("http://localhost:5173")
+            return any(origin.startswith(p) for p in allowed_prefixes)
+
+        def _apply_cors_headers(self, response, origin):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+            response.headers["Access-Control-Expose-Headers"] = "Content-Length, Content-Range"
+
+    from starlette.responses import Response
+    app.add_middleware(DynamicCORSMiddleware)
     app.include_router(router)
     app.include_router(auth_router)
     app.include_router(qa_router)
