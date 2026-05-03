@@ -47,7 +47,7 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#FF69B4', '#F59E0B', '#3b82f6']
+        colors: ['#10b981', '#F59E0B', '#3b82f6']
       });
     }
   };

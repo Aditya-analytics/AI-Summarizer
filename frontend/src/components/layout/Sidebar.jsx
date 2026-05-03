@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
   LayoutDashboard, 
@@ -8,12 +8,13 @@ import {
   Settings, 
   LogOut,
   HelpCircle,
-  Users
+  Users,
+  Plus
 } from 'lucide-react';
 
 import { useWorkspace } from '../../context/WorkspaceContext';
 
-const Sidebar = ({ collapsed = false }) => {
+const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
   const { clearWorkspace } = useWorkspace();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,71 +37,122 @@ const Sidebar = ({ collapsed = false }) => {
   ];
 
   return (
-    <aside className={`nova-sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-logo" onClick={() => navigate('/')}>
-        <div className="logo-icon">
-          <Sparkles size={20} fill="currentColor" />
-        </div>
-        {!collapsed && <span className="logo-text">Nova</span>}
-      </div>
-
-      <nav className="sidebar-nav">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
-          
-          return (
-            <div 
-              key={item.id}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => item.path !== '#' && navigate(item.path)}
-            >
-              <Icon size={20} className="nav-icon" />
-              {!collapsed && (
-                <>
-                  <span className="nav-label">{item.label}</span>
-                  {item.badge && <span className="nav-badge">{item.badge}</span>}
-                </>
-              )}
-            </div>
-          );
-        })}
-      </nav>
-
-      <div className="sidebar-footer">
-        {!collapsed && (
-          <div className="user-profile">
-            <div className="user-avatar">
-              {userName[0].toUpperCase()}
-            </div>
-            <div className="user-info">
-              <p className="user-name">{userName}</p>
-              <p className="user-plan">Pro Plan</p>
-            </div>
-          </div>
+    <>
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="sidebar-overlay"
+            onClick={onClose}
+          />
         )}
-        <div className="footer-actions">
-          <button className="footer-btn" onClick={handleLogout} title="Logout">
-            <LogOut size={18} />
-            {!collapsed && <span>Logout</span>}
-          </button>
-        </div>
-      </div>
+      </AnimatePresence>
 
-      <style jsx>{`
-        .nova-sidebar {
-          width: 240px;
-          height: 100vh;
-          background: var(--bg-elevated);
-          border-right: 1px solid var(--border-subtle);
-          display: flex;
-          flex-direction: column;
-          padding: 24px 16px;
-          position: sticky;
-          top: 0;
-          transition: width var(--duration-base) var(--ease-out);
-          z-index: 100;
-        }
+      <aside className={`nova-sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-logo" onClick={() => navigate('/')}>
+          <div className="logo-icon">
+            <Sparkles size={20} fill="currentColor" />
+          </div>
+          {!collapsed && <span className="logo-text">Nova</span>}
+          {mobileOpen && (
+            <button className="mobile-close-btn" onClick={onClose}>
+              <Plus style={{ transform: 'rotate(45deg)' }} size={20} />
+            </button>
+          )}
+        </div>
+
+        <nav className="sidebar-nav">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <div 
+                key={item.id}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => {
+                  if (item.path !== '#') {
+                    navigate(item.path);
+                    if (onClose) onClose();
+                  }
+                }}
+              >
+                <Icon size={20} className="nav-icon" />
+                {!collapsed && (
+                  <>
+                    <span className="nav-label">{item.label}</span>
+                    {item.badge && <span className="nav-badge">{item.badge}</span>}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="sidebar-footer">
+          {!collapsed && (
+            <div className="user-profile">
+              <div className="user-avatar">
+                {userName[0].toUpperCase()}
+              </div>
+              <div className="user-info">
+                <p className="user-name">{userName}</p>
+                <p className="user-plan">Pro Plan</p>
+              </div>
+            </div>
+          )}
+          <div className="footer-actions">
+            <button className="footer-btn" onClick={handleLogout} title="Logout">
+              <LogOut size={18} />
+              {!collapsed && <span>Logout</span>}
+            </button>
+          </div>
+        </div>
+
+        <style jsx>{`
+          .nova-sidebar {
+            width: 240px;
+            height: 100vh;
+            background: var(--bg-elevated);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            transition: all var(--duration-base) var(--ease-out);
+            z-index: 1000;
+          }
+
+          @media (max-width: 1024px) {
+            .nova-sidebar {
+              position: fixed;
+              left: -280px;
+              top: 0;
+              bottom: 0;
+              width: 280px;
+              box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+            }
+            .nova-sidebar.mobile-open {
+              left: 0;
+            }
+            .sidebar-overlay {
+              position: fixed;
+              inset: 0;
+              background: rgba(15, 23, 42, 0.4);
+              backdrop-filter: blur(4px);
+              z-index: 999;
+            }
+            .mobile-close-btn {
+              margin-left: auto;
+              background: none;
+              border: none;
+              color: var(--text-muted);
+              cursor: pointer;
+            }
+          }
 
         .nova-sidebar.collapsed {
           width: 80px;
@@ -241,6 +293,7 @@ const Sidebar = ({ collapsed = false }) => {
         }
       `}</style>
     </aside>
+    </>
   );
 };
 

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Sparkles, ArrowRight, Search, Layout, BookOpen, 
-  MessageSquare, Bell, Star, FileText, PlayCircle, 
-  Globe, Zap, Book, GraduationCap, Microscope, 
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Sparkles, ArrowRight, Search, Layout, BookOpen,
+  MessageSquare, Bell, Star, FileText, PlayCircle,
+  Globe, Zap, Book, GraduationCap, Microscope,
   ListChecks, Check, Code, Home, Users, Settings, Plus
 } from 'lucide-react';
 
@@ -17,7 +18,7 @@ const MockUI = () => (
         </div>
         <span className="logo-text-sm">Nova</span>
       </div>
-      
+
       <div className="mock-nav-v3">
         <div className="mock-nav-item"><Home size={16} /> Home</div>
         <div className="mock-nav-item active"><Layout size={16} /> Dashboard</div>
@@ -94,6 +95,7 @@ const MockUI = () => (
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('nova_token');
@@ -105,8 +107,8 @@ const LandingPage = () => {
   useEffect(() => {
     const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => { 
-        if (entry.isIntersecting) entry.target.classList.add('revealed'); 
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('revealed');
       });
     }, observerOptions);
     document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
@@ -119,7 +121,7 @@ const LandingPage = () => {
       <div className="glow glow-left"></div>
       <div className="glow glow-right"></div>
 
-      <nav className="navbar-v2 animate-fade-up">
+      <nav className={`navbar-v2 animate-fade-up ${isMenuOpen ? 'menu-open' : ''}`}>
         <div className="nav-left">
           <div className="nav-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
             <div className="logo-icon-v2">
@@ -128,13 +130,15 @@ const LandingPage = () => {
             <span className="logo-text-v2">Nova</span>
           </div>
         </div>
-        <div className="nav-center-v2">
+        
+        <div className="nav-center-v2 desktop-only">
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
           <a href="#about">About</a>
           <a href="#resources">Resources</a>
         </div>
-        <div className="nav-right">
+
+        <div className="nav-right desktop-only">
           {isLoggedIn ? (
             <button className="btn-primary-v2" onClick={() => navigate('/dashboard')}>
               Go to Dashboard <ArrowRight size={14} />
@@ -146,7 +150,40 @@ const LandingPage = () => {
             </>
           )}
         </div>
+
+        <button className="mobile-menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          {isMenuOpen ? <Plus style={{ transform: 'rotate(45deg)' }} /> : <Layout />}
+        </button>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mobile-menu-v2"
+          >
+            <div className="mobile-nav-links">
+              <a href="#features" onClick={() => setIsMenuOpen(false)}>Features</a>
+              <a href="#pricing" onClick={() => setIsMenuOpen(false)}>Pricing</a>
+              <a href="#about" onClick={() => setIsMenuOpen(false)}>About</a>
+              <a href="#resources" onClick={() => setIsMenuOpen(false)}>Resources</a>
+            </div>
+            <div className="mobile-nav-auth">
+              {isLoggedIn ? (
+                <button className="btn-primary-v2 wide" onClick={() => navigate('/dashboard')}>Dashboard</button>
+              ) : (
+                <>
+                  <button className="btn-ghost wide" onClick={() => navigate('/auth')}>Login</button>
+                  <button className="btn-primary-v2 wide" onClick={() => navigate('/auth')}>Start Trial</button>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <section className="hero-section-v2">
         <div className="hero-announcement animate-fade-up" style={{ animationDelay: '0.1s' }}>MEET THE NEW NOVA: AGENTS AND A BOLD REBRAND. <ArrowRight size={14} /></div>
@@ -176,7 +213,7 @@ const LandingPage = () => {
             <div className="card-visual visual-upload">
               <div className="upload-stack">
                 <div className="file-box f1"><FileText size={20} color="#ff7a64" /></div>
-                <div className="file-box f2"><PlayCircle size={20} color="#818cf8" /></div>
+                <div className="file-box f2"><PlayCircle size={20} color="#ff9d6c" /></div>
                 <div className="upload-center">
                   <div className="up-icon"><Globe size={20} color="#ff7a64" /></div>
                   <span>Ingest</span>

@@ -21,6 +21,7 @@ const WorkspacePage = () => {
   const location = useLocation();
   const [doc, setDoc] = useState(location.state?.doc || null);
   const [activePanel, setActivePanel] = useState(location.state?.activeTab || 'summary');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Summary State
   const [summary, setSummary] = useState('');
@@ -256,11 +257,25 @@ const WorkspacePage = () => {
     <div className="workspace-root">
       <WorkspaceSidebar
         activePanel={activePanel}
-        setActivePanel={setActivePanel}
+        setActivePanel={(panel) => {
+          setActivePanel(panel);
+          setIsSidebarOpen(false);
+        }}
         docName={doc?.name || 'Loading...'}
+        mobileOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       <main className="workspace-main">
+        <div className="mobile-workspace-header">
+          <button className="ws-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+            <div className="menu-icon-v2">
+              <div className="line"></div>
+              <div className="line"></div>
+            </div>
+          </button>
+          <span className="ws-active-title">{activePanel.charAt(0).toUpperCase() + activePanel.slice(1)}</span>
+        </div>
         <div className="workspace-view">
           <AnimatePresence mode="wait">
             <motion.div
@@ -347,6 +362,18 @@ const WorkspacePage = () => {
         .workspace-view { max-width: 1200px; width: 100%; height: 100%; margin: 0 auto; }
         .panel-wrapper { height: 100%; }
         .loader-full { height: 100vh; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; color: var(--brand-primary); background: var(--bg-base); }
+        
+        .mobile-workspace-header { display: none; align-items: center; gap: 16px; padding: 16px 24px; background: white; border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; z-index: 10; }
+        .ws-menu-btn { background: none; border: none; padding: 8px; cursor: pointer; }
+        .menu-icon-v2 { width: 20px; height: 12px; display: flex; flex-direction: column; justify-content: space-between; }
+        .menu-icon-v2 .line { height: 2px; width: 100%; background: var(--text-primary); border-radius: 2px; }
+        .ws-active-title { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--text-primary); }
+
+        @media (max-width: 1024px) {
+          .workspace-main { padding: 0; }
+          .workspace-view { padding: 20px; }
+          .mobile-workspace-header { display: flex; }
+        }
       `}</style>
     </div>
   );

@@ -6,11 +6,13 @@ import {
   BookOpen, 
   ChevronLeft,
   Search,
-  Type
+  Type,
+  Plus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const WorkspaceSidebar = ({ activePanel, setActivePanel, docName }) => {
+const WorkspaceSidebar = ({ activePanel, setActivePanel, docName, mobileOpen = false, onClose }) => {
   const navigate = useNavigate();
 
   const menuItems = [
@@ -22,59 +24,106 @@ const WorkspaceSidebar = ({ activePanel, setActivePanel, docName }) => {
   ];
 
   return (
-    <div className="workspace-sidebar">
-      <div className="sidebar-header">
-        <button className="back-btn" onClick={() => navigate('/dashboard')}>
-          <ChevronLeft size={18} />
-          <span>Dashboard</span>
-        </button>
-      </div>
+    <>
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="ws-sidebar-overlay"
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="document-info">
-        <div className="doc-badge">Active Document</div>
-        <h2 title={docName}>{docName}</h2>
-      </div>
-
-      <nav className="workspace-nav">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activePanel === item.id;
-
-          return (
-            <button
-              key={item.id}
-              className={`ws-nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => setActivePanel(item.id)}
-            >
-              <div className="icon-wrapper">
-                <Icon size={18} />
-              </div>
-              <span>{item.label}</span>
-              {isActive && <div className="active-indicator" />}
+      <div className={`workspace-sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-header">
+          <button className="back-btn" onClick={() => navigate('/dashboard')}>
+            <ChevronLeft size={18} />
+            <span>Dashboard</span>
+          </button>
+          {mobileOpen && (
+            <button className="ws-close-btn" onClick={onClose}>
+              <Plus style={{ transform: 'rotate(45deg)' }} size={20} />
             </button>
-          );
-        })}
-      </nav>
-
-      <div className="sidebar-footer">
-        <div className="help-card">
-          <Search size={16} />
-          <p>Press <span>Cmd+K</span> to search within this document</p>
+          )}
         </div>
-      </div>
 
-      <style jsx>{`
-        .workspace-sidebar {
-          width: 280px;
-          height: 100vh;
-          background: var(--bg-surface);
-          border-right: 1px solid var(--border-subtle);
-          display: flex;
-          flex-direction: column;
-          padding: 24px 16px;
-          position: sticky;
-          top: 0;
-        }
+        <div className="document-info">
+          <div className="doc-badge">Active Document</div>
+          <h2 title={docName}>{docName}</h2>
+        </div>
+
+        <nav className="workspace-nav">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activePanel === item.id;
+
+            return (
+              <button
+                key={item.id}
+                className={`ws-nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => setActivePanel(item.id)}
+              >
+                <div className="icon-wrapper">
+                  <Icon size={18} />
+                </div>
+                <span>{item.label}</span>
+                {isActive && <div className="active-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="help-card">
+            <Search size={16} />
+            <p>Press <span>Cmd+K</span> to search within this document</p>
+          </div>
+        </div>
+
+        <style jsx>{`
+          .workspace-sidebar {
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            transition: transform var(--duration-base) var(--ease-out);
+            z-index: 1000;
+          }
+
+          @media (max-width: 1024px) {
+            .workspace-sidebar {
+              position: fixed;
+              left: -280px;
+              top: 0;
+              bottom: 0;
+              box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+            }
+            .workspace-sidebar.mobile-open {
+              left: 0;
+            }
+            .ws-sidebar-overlay {
+              position: fixed;
+              inset: 0;
+              background: rgba(15, 23, 42, 0.4);
+              backdrop-filter: blur(4px);
+              z-index: 999;
+            }
+            .ws-close-btn {
+              margin-left: auto;
+              background: none;
+              border: none;
+              color: var(--text-muted);
+              cursor: pointer;
+            }
+          }
 
         .sidebar-header {
           margin-bottom: 32px;
@@ -201,6 +250,7 @@ const WorkspaceSidebar = ({ activePanel, setActivePanel, docName }) => {
         }
       `}</style>
     </div>
+    </>
   );
 };
 

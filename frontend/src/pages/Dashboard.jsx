@@ -20,6 +20,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { documents, loading, error, deleteDocument } = useWorkspace();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const { 
     isUploading, 
@@ -46,12 +47,13 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-root">
-      <Sidebar />
+      <Sidebar mobileOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
       <main className="dashboard-content">
         <TopHeader 
           title="Overview" 
           onNewDocument={handleOpenModal} 
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
 
         <div className="content-inner">
@@ -217,6 +219,9 @@ const Dashboard = () => {
         @media (max-width: 1024px) {
           .content-inner {
             padding: 24px;
+          }
+          .dashboard-root {
+            position: relative;
           }
         }
       `}</style>

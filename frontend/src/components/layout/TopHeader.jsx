@@ -1,11 +1,16 @@
-import React from 'react';
-import { Search, Bell, Command, Plus } from 'lucide-react';
+import { Search, Bell, Command, Plus, Menu } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const TopHeader = ({ title, onNewDocument }) => {
+const TopHeader = ({ title, onNewDocument, onToggleSidebar }) => {
   return (
     <header className="nova-header">
       <div className="header-left">
+        <button className="mobile-sidebar-toggle" onClick={onToggleSidebar}>
+          <div className="menu-icon-v2">
+            <div className="line"></div>
+            <div className="line"></div>
+          </div>
+        </button>
         <h1 className="header-title">{title}</h1>
       </div>
 
@@ -162,8 +167,36 @@ const TopHeader = ({ title, onNewDocument }) => {
           border-radius: var(--radius-md);
           font-weight: 700;
           font-size: 14px;
-          cursor: pointer;
           box-shadow: var(--shadow-md);
+        }
+        .mobile-sidebar-toggle {
+          display: none;
+          background: none;
+          border: none;
+          color: var(--text-primary);
+          cursor: pointer;
+          margin-right: 16px;
+        }
+        
+        .menu-icon-v2 {
+          width: 20px;
+          height: 12px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .menu-icon-v2 .line {
+          height: 2px;
+          width: 100%;
+          background: var(--text-primary);
+          border-radius: 2px;
+        }
+
+        @media (max-width: 1024px) {
+          .nova-header { padding: 0 24px; }
+          .mobile-sidebar-toggle { display: block; }
+          .search-container { display: none; }
+          .header-title { font-size: 20px; }
         }
       `}</style>
     </header>
