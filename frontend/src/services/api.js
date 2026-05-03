@@ -105,6 +105,9 @@ const api = {
 
   getSummary: (document_id, length = 'standard', language = 'English') =>
     apiStream('POST', `/qa/summary?document_id=${document_id}`, { length, language }),
+
+  clearChat: (document_id) =>
+    apiFetch('DELETE', `/qa/document/${document_id}/chat`),
 };
 
 export default api;

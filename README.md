@@ -1,86 +1,120 @@
-# ✨ Nova AI: The Research Intelligence Workspace
+# 🌌 Nova AI: The Cinematic Research Intelligence Hub
 
-Nova AI is a professional-grade learning and research platform that transforms scattered data into structured knowledge. Inspired by systems like NotebookLM, Nova allows users to aggregate diverse sources—PDFs, YouTube videos, and web articles—into **Intelligence Workspaces** for multi-dimensional analysis.
-
----
-
-## 🧠 Product Philosophy
-
-The core of Nova is the **"Source-to-Mastery" Pipeline**. Unlike simple summarizers that treat documents as one-off tasks, Nova treats them as persistent knowledge assets. The goal is not just to "read" a document, but to **master** it through AI-driven interaction, validation, and synthesis.
+Nova is a state-of-the-art AI Learning Workspace designed for deep researchers and high-performance learners. It transforms scattered data (PDFs, YouTube, Web) into a mission-ready knowledge base using a high-fidelity cinematic interface.
 
 ---
 
-## 🚀 Key Features
+## 🚀 The Nova Experience
 
-### 1. Multi-Source Research Hub
-- **Workspaces as Containers**: Group related materials (e.g., "Quantum Computing Research") into a single workspace.
-- **Selective Intelligence**: Use checkboxes to toggle specific sources on/off, allowing the AI to focus its context on exactly what you need.
-- **Source Viewer**: Side-by-side preview of original PDFs and videos within the workspace.
+### 🎭 Cinematic UX/UI
+Nova features a unique **"NovaLoader"** system with three high-fidelity animation variants:
+- **Scanning**: Visualizes real-time document ingestion and data extraction.
+- **Thinking**: A pulsing "Knowledge Atom" representing complex AI reasoning.
+- **Writing**: A shimmering data stream showing the synthesis of new insights.
 
-### 2. AI Analysis Suite
-- **Contextual Chat (RAG)**: Chat with your entire workspace. The AI provides verified answers with source citations.
-- **Adaptive Quizzing**: Generate difficulty-aware (Easy/Medium/Hard) MCQs to test your understanding.
-- **Smart Synthesis (Notes)**: Automatically generate structured study guides and export them to Markdown or Text formats.
+### 🛡️ The Gauntlet (Infinity Core)
+A world-first **"Infinity Stone"** integration system. Users can plug in their own Gemini API keys to unlock unlimited power, bypassing system limits with a custom cinematic activation sequence.
 
-### 3. Mastery Tracking & Gamification
-- **Mastery Scores**: Every workspace tracks your learning progress (0-100%) based on your interactions and quiz results.
-- **Study Stats**: Global dashboard tracking study time, total insights generated, and active research sessions.
-
----
-
-## 🔄 The Nova Workflow
-
-1. **Ingest**: Create a new Workspace and upload multiple sources (PDF, URL, YouTube).
-2. **Process**: Nova AI indexes the sources, creating a searchable vector knowledge base.
-3. **Interact**: Use the **Workspace Chat** to synthesize information across all selected sources.
-4. **Validate**: Take an AI-generated **Quiz** to verify your knowledge and increase your Mastery score.
-5. **Output**: Review the **Smart Notes** and export your structured findings for external use.
+### 🧪 Advanced Research Toolset
+- **Multi-Source RAG**: Chat with your entire workspace using Retrieval-Augmented Generation.
+- **Intelligence Challenges**: Generate difficulty-aware MCQs to validate subject mastery.
+- **Structured Synthesis**: Automatically distilled study notes optimized for research.
+- **Mission-Hardened Backend**: Global exception handling and transaction resilience for production stability.
 
 ---
 
 ## 🛠️ Technical Architecture
 
-### Frontend (The Specification)
-- **Core**: React (Vite) with a modular Component-Based Architecture.
-- **State Management**: `WorkspaceContext` (React Context API) handles multi-source state, mastery logic, and cross-tool navigation.
-- **Styling**: Vanilla CSS with a "Linear-style" premium aesthetic, glassmorphism, and data-forward grids.
-- **Icons**: Lucide-React for professional, consistent visual language.
+### **Frontend**
+- **Framework**: React 19 + Vite (Type: Module)
+- **Animations**: Framer Motion 12 (High-Fidelity Transitions)
+- **Icons**: Lucide React
+- **Design System**: Custom HSL V4 Glassmorphism (Linear-inspired aesthetic)
+- **State**: React Context API (Workspace Intelligence Management)
 
-### Backend (The Engine - To be implemented)
-- **Framework**: FastAPI (Python) using the Factory Pattern.
-- **Intelligence**: RAG (Retrieval-Augmented Generation) pipeline.
-- **Vector Storage**: ChromaDB / Pinecone for source indexing.
-- **LLM**: Framework-agnostic integration (Ollama for local, OpenAI for cloud).
-
----
-
-## 🧭 The User Journey: A Deep Dive into the Research Flow
-
-Nova AI is built around a frictionless, high-velocity research workflow. Here is how you use it to master any subject:
-
-### 1. The Entry (Onboarding & Dashboard)
-- **First Impression**: Land on the sleek, glassmorphic Landing Page to understand Nova's core value.
-- **The Command Center**: After logging in, you land on the **Dashboard**. Here, you see your global stats (Average Mastery, Total Study Time).
-- **Initialization**: Click **"New Workspace"** to create a dedicated container for a new project (e.g., "Deep Learning Study").
-
-### 2. Constructing the Knowledge Base (The Hub)
-- **Adding Sources**: Inside your new workspace, use the sidebar to upload PDFs, paste YouTube links, or add Web Articles. 
-- **AI Indexing**: Watch as the AI "indexes" your materials. This isn't just a file upload; Nova is building a vector-based understanding of every word and frame in your sources.
-
-### 3. Selective Intelligence (The "Context" Toggle)
-- **Granular Focus**: Use the **Checkboxes** next to your sources. If you want to compare two specific papers, check only those two. Nova’s AI will ignore the rest, ensuring zero "context noise" in its answers.
-- **Side-by-Side Reading**: Click the **"Eye"** icon to open the **Source Viewer**. You can now read the original source text side-by-side with the AI Chat.
-
-### 4. Multi-Dimensional Interaction
-- **Workspace Chat**: Ask the AI to synthesize findings across your entire workspace. Click **Citations** in the AI responses to jump directly to the source proof.
-- **Validation (The Quiz)**: When you feel ready, switch to the **Quiz Tool**. Choose your difficulty (Hard) to truly test your knowledge.
-- **Synthesis (Smart Notes)**: Open the **Notes Tool** to see a beautifully structured overview of the workspace's core concepts.
-
-### 5. Finalizing & Exporting
-- **Mastery Recognition**: Observe your **Mastery Score** increase as you interact with the AI and pass quizzes.
-- **Knowledge Export**: Export your smart notes to **Markdown** or **TXT** to integrate them into your personal second brain (Notion, Obsidian, etc.).
+### **Backend**
+- **Framework**: FastAPI (Python) using the Factory Pattern
+- **Database**: SQLModel (SQLAlchemy + Pydantic)
+- **Vector Search**: ChromaDB (Native Vector Indexing)
+- **LLM Engine**: Google Gemini 2.5 Pro & Flash (Multimodal)
+- **Security**: JWT Authentication (PyJWT) + Bcrypt Password Hashing
 
 ---
 
-## 🎯 The North Star
-By the end of a session in Nova, a user should be able to rebuild their entire backend from scratch, explain every architectural decision, and demonstrate 100% mastery of the research materials they ingested.
+## 🧭 Setup & Installation
+
+### **1. Backend (The Hub)**
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/nova-ai.git
+cd AI_Summarizer
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/bin/activate  # Mac/Linux
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables (.env)
+cp .env.example .env
+
+# Start the Hub
+python -m app.main
+```
+
+### **2. Frontend (The Lab)**
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+---
+
+## ⚙️ Environment Variables
+
+### **Backend (.env)**
+| Key | Description |
+|-----|-------------|
+| `GEMINI_API_KEY` | Your primary Google AI Studio key. |
+| `SECRET_KEY` | Secure random string for JWT signing. |
+| `ALGORITHM` | Typically `HS256`. |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token TTL (e.g., 1440). |
+| `FRONTEND_URL` | Production URL (for CORS hardening). |
+
+### **Frontend (.env)**
+| Key | Description |
+|-----|-------------|
+| `VITE_API_BASE_URL` | Backend API URL (Local or Render). |
+
+---
+
+## ☁️ Deployment
+
+### **Backend (Render)**
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `uvicorn app.main:create_app --host 0.0.0.0 --port $PORT --factory`
+
+### **Frontend (Vercel)**
+- **Framework**: Vite
+- **Root Directory**: `frontend/`
+- **Build Command**: `npm run build`
+
+---
+
+## 🛡️ Stability & Security
+- **Error Boundaries**: Root-level UI protection with high-fidelity recovery views.
+- **Transaction Resilience**: Automated database rollbacks for failed credit consumptions.
+- **Global Resilience**: Backend-wide exception handling returning professional researcher feedback.
+
+---
+
+## 📜 License
+Mission-ready under the MIT License.
+
+**Master your research. Calibrate your Gauntlet. Welcome to Nova.**

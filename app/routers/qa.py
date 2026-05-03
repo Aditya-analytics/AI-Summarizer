@@ -58,13 +58,32 @@ async def get_all_artifacts(document_id: int, db: AsyncSession = Depends(get_db)
         except:
             quiz = None
 
+    chat = []
+    for h in history:
+        chat.append({"role": "user", "content": h.question})
+        chat.append({"role": "ai", "content": h.answer})
+
     return {
         "summary": summary,
         "notes": notes,
         "quiz": quiz,
-        "chat": [{"role": "user", "content": h.question} if i % 2 == 0 else {"role": "ai", "content": h.answer} 
-                 for i, h in enumerate(history)] # Basic mapping for now
+        "chat": chat
     }
+
+@qa_router.delete("/document/{document_id}/chat", status_code=204)
+async def clear_chat(document_id: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
+    """Clears all chat history for a given document."""
+    # Ownership check
+    result = await db.execute(
+        select(Document).where(Document.id == document_id, Document.user_id == current_user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    from sqlalchemy import delete
+    await db.execute(delete(QAHistory).where(QAHistory.document_id == document_id))
+    await db.commit()
+    return None
 
 @qa_router.get("/document/{document_id}/raw", status_code=200)
 async def get_raw_text(document_id: int, db: AsyncSession = Depends(get_db), current_user = Depends(get_current_user)):
@@ -113,8 +132,21 @@ async def get_summary(config: BasicConfigs, document_id: int, db: AsyncSession =
         return cache
         
     # 2. GENERATE NEW SUMMARY
+    from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
+    creds = await get_gauntlet_credentials(current_user, db)
+    
     raw_text = doc.content_blob.raw_text if doc.content_blob else ""
-    return await streaming_output(raw_text, config.length, config.language, document_id=document_id, db=db)
+    response = await streaming_output(
+        raw_text, config.length, config.language, 
+        document_id=document_id, db=db,
+        model=creds["engine_model"],
+        api_key=creds["api_key"]
+    )
+
+    if creds["is_free"]:
+        await consume_free_call(current_user, db)
+    
+    return response
 
 
 @qa_router.post("/ask",status_code=200)
@@ -130,12 +162,15 @@ async def ask(user_input: QA, request: Request, db: AsyncSession = Depends(get_d
     if not doc :
         raise HTTPException(status_code=404,detail="Document not found or access denied")
 
-    context, scores = await get_context_from_db(user_input.question, user_input.document_id, request.app.state.vector_db)
+    from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
+    creds = await get_gauntlet_credentials(current_user, db)
+
+    context, scores = await get_context_from_db(user_input.question, user_input.document_id, request.app.state.vector_db, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"])
     prompt = generate_qa_prompt(user_input.question,context)
     full_answer = []
     try :
         async def stream_generator():
-            async for chunk in llm_response(prompt, MODEL_NAME):
+            async for chunk in llm_response(prompt, creds["engine_model"], creds["api_key"]):
                 full_answer.append(chunk)
                 yield chunk
             
@@ -146,6 +181,11 @@ async def ask(user_input: QA, request: Request, db: AsyncSession = Depends(get_d
                 answer=response
             )
             db.add(hist)
+            
+            # Decrement free calls only on success
+            if creds["is_free"]:
+                await consume_free_call(current_user, db)
+                
             await db.commit()
             await db.refresh(hist)
 
@@ -184,16 +224,19 @@ async def get_quizes(config: QuizConfig, document_id: int, request: Request, db:
             # Continue to generation if cache is corrupted
 
     # 2. AI GENERATION
+    from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
+    creds = await get_gauntlet_credentials(current_user, db)
+
     from app.services.quiz_service import generate_quiz_stream
     quiz_query = f"key concepts and important facts for a {config.difficulty} difficulty quiz"
-    context, scores = await get_context_from_db(quiz_query, document_id, request.app.state.vector_db, k=15)
+    context, scores = await get_context_from_db(quiz_query, document_id, request.app.state.vector_db, k=15, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"])
     
     if not context or not context.strip():
         raise HTTPException(status_code=503, detail="Document is still being indexed.")
 
     full_quiz_json = []
     async def stream_quiz():
-        async for chunk in generate_quiz_stream(context, config.difficulty):
+        async for chunk in generate_quiz_stream(context, config.difficulty, model=creds["engine_model"], api_key=creds["api_key"]):
             full_quiz_json.append(chunk)
             yield chunk
         
@@ -209,6 +252,11 @@ async def get_quizes(config: QuizConfig, document_id: int, request: Request, db:
                     language="English"
                 )
                 db.add(new_cache)
+                
+                # Decrement free calls
+                if creds["is_free"]:
+                    await consume_free_call(current_user, db)
+
                 await db.commit()
         except Exception as e:
             print(f"LOG: Failed to cache quiz: {e}")
@@ -242,11 +290,14 @@ async def get_notes(config: BasicConfigs, document_id: int, request: Request, db
         return cache
 
     # 2. AI GENERATION
+    from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
+    creds = await get_gauntlet_credentials(current_user, db)
+
     raw_text = doc.content_blob.raw_text if doc.content_blob else ""
     # raw_text only used for k calculation — NOT as the query (would exceed context limit)
     k = max(3, min(20, len(raw_text) // 1000))
     notes_query = f"key concepts, main ideas, summary, and important details for {config.length} notes"
-    context, scores = await get_context_from_db(notes_query, document_id, request.app.state.vector_db, k=k)
+    context, scores = await get_context_from_db(notes_query, document_id, request.app.state.vector_db, k=k, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"])
 
     # Guard: if no vectors exist yet, the document is still being indexed
     if not context or not context.strip():
@@ -260,7 +311,7 @@ async def get_notes(config: BasicConfigs, document_id: int, request: Request, db
     notes = []
     try :
         async def stream_generator():
-            async for chunk in llm_response(prompt, MODEL_NAME):
+            async for chunk in llm_response(prompt, creds["engine_model"], creds["api_key"]):
                 notes.append(chunk)
                 yield chunk
             
@@ -273,6 +324,11 @@ async def get_notes(config: BasicConfigs, document_id: int, request: Request, db
                 language=config.language
             )
             db.add(new_cache)
+            
+            # Decrement free calls
+            if creds["is_free"]:
+                await consume_free_call(current_user, db)
+
             await db.commit()
             
         return StreamingResponse(stream_generator(), media_type="text/plain")

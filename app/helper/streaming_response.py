@@ -7,13 +7,13 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.data.models import Output
 
-async def streaming_output(text:str,length:str,language:str, document_id: int = None, db: AsyncSession = None):
+async def streaming_output(text:str,length:str,language:str, document_id: int = None, db: AsyncSession = None, model=None, api_key=None):
     prompt = tweak_prompt(SYSTEM_PROMPT,length,language)
     query = f"{prompt}\n{text}" 
     try :
         async def stream_generator():
             full_summary = []
-            async for chunk in llm_response(query, MODEL_NAME):
+            async for chunk in llm_response(query, model, api_key):
                 full_summary.append(chunk)
                 yield chunk
             

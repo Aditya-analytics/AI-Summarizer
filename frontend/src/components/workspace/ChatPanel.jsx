@@ -16,6 +16,7 @@ const ChatPanel = ({
   input, 
   setInput, 
   onSend, 
+  onClear,
   loading,
   docUrl
 }) => {
@@ -38,7 +39,7 @@ const ChatPanel = ({
           <div className="title-icon"><Bot size={18} /></div>
           <h2>Contextual AI Chat</h2>
         </div>
-        <button className="icon-btn-text" title="Clear Chat">
+        <button className="icon-btn-text" title="Clear Chat" onClick={onClear}>
           <Trash2 size={16} />
         </button>
       </div>

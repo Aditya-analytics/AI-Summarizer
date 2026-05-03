@@ -8,9 +8,13 @@ import {
   Check,
   Sparkles,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Download,
+  FileCode
 } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import { motion } from 'framer-motion';
+import NovaLoader from '../common/NovaLoader';
 
 const SummaryPanel = ({ 
   summary, 
@@ -27,6 +31,47 @@ const SummaryPanel = ({
     navigator.clipboard.writeText(summary);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadPDF = () => {
+    const element = document.getElementById('summary-content');
+    const opt = {
+      margin: 1,
+      filename: `Nova_Summary_${new Date().getTime()}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+  };
+
+  const downloadHTML = () => {
+    const content = `
+      <html>
+        <head>
+          <title>Nova AI Summary</title>
+          <style>
+            body { font-family: sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 40px auto; padding: 20px; }
+            h1, h2, h3 { color: #ff6b4a; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+            th { background-color: #f8fafc; }
+          </style>
+        </head>
+        <body>
+          <h1>Nova Research Intelligence</h1>
+          <hr />
+          ${summary.replace(/\n/g, '<br />')}
+        </body>
+      </html>
+    `;
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Nova_Summary_${new Date().getTime()}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const lengths = [
@@ -83,22 +128,33 @@ const SummaryPanel = ({
         {summary && (
           <div className="markdown-wrapper">
             <div className="markdown-toolbar">
-              <button className="tool-btn" onClick={handleCopy}>
-                {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
-                <span>{copied ? 'Copied!' : 'Copy Markdown'}</span>
-              </button>
+              <div className="tool-group">
+                <button className="tool-btn" onClick={handleCopy}>
+                  {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+                  <span>{copied ? 'Copied!' : 'Copy Markdown'}</span>
+                </button>
+              </div>
+              <div className="tool-group">
+                <button className="tool-btn" onClick={downloadHTML} title="Download HTML">
+                  <FileCode size={14} />
+                  <span>HTML</span>
+                </button>
+                <button className="tool-btn" onClick={downloadPDF} title="Download PDF">
+                  <Download size={14} />
+                  <span>PDF</span>
+                </button>
+              </div>
             </div>
-            <div className="markdown-body">
+            <div className="markdown-body" id="summary-content">
               <FormattedText docUrl={docUrl}>{summary}</FormattedText>
-              {loading && <span className="typing-cursor">▌</span>}
+              {loading && <NovaLoader variant="writing" text="Nova is refining the summary..." />}
             </div>
           </div>
         )}
 
         {loading && !summary && (
           <div className="loading-state">
-            <Loader2 size={40} className="animate-spin" />
-            <p>Nova is distilling the core insights...</p>
+            <NovaLoader variant="thinking" text="Nova is distilling the core insights..." />
           </div>
         )}
       </div>
@@ -209,8 +265,13 @@ const SummaryPanel = ({
           padding: 12px 24px;
           border-bottom: 1px solid var(--border-subtle);
           display: flex;
-          justify-content: flex-end;
+          justify-content: space-between;
           background: var(--bg-surface);
+        }
+
+        .tool-group {
+          display: flex;
+          gap: 16px;
         }
 
         .tool-btn {

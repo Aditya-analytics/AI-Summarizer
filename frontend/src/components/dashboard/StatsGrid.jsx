@@ -98,13 +98,22 @@ const StatCard = ({ label, value, icon: Icon, subtext, trend, idx }) => (
 
 const StatsGrid = ({ documents }) => {
   const safeDocs = Array.isArray(documents) ? documents : [];
+  const quotes = [
+    "Intelligence is the ability to adapt to change.",
+    "The future belongs to those who learn more.",
+    "Data is the new oil, but insights are the gold.",
+    "Stay curious, stay analytical.",
+    "Mastery is a journey, not a destination."
+  ];
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+
   const stats = [
     { 
-      label: 'Total Insights', 
-      value: safeDocs.length, 
-      icon: Zap, 
-      subtext: '+12% this week', 
-      trend: true 
+      label: 'Laboratory Status', 
+      value: 'Elite', 
+      icon: Activity, 
+      subtext: randomQuote, 
+      trend: false 
     },
     { 
       label: 'Documents', 

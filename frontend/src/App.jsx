@@ -6,6 +6,8 @@ import {
 } from 'react-router-dom';
 import './index.css';
 import { WorkspaceProvider } from './context/WorkspaceContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import NovaLoader from './components/common/NovaLoader';
 
 // Page Imports
 import { Suspense, lazy } from 'react';
@@ -19,24 +21,23 @@ const LibraryPage = lazy(() => import('./pages/LibraryPage'));
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const GauntletPage = lazy(() => import('./pages/GauntletPage'));
 
 const PageLoader = () => (
   <div className="loader-full">
-    <div className="loader-spinner" />
-    <span>Loading Nova Intelligence...</span>
+    <NovaLoader variant="thinking" text="Loading Nova Intelligence..." />
     <style jsx>{`
       .loader-full { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; font-family: var(--font-display); font-weight: 800; color: var(--brand-primary); background: var(--bg-base); }
-      .loader-spinner { width: 40px; height: 40px; border: 3px solid var(--brand-glow); border-top-color: var(--brand-primary); border-radius: 50%; animation: spin 1s linear infinite; }
-      @keyframes spin { to { transform: rotate(360deg); } }
     `}</style>
   </div>
 );
 
 function App() {
   return (
-    <WorkspaceProvider>
-      <Router>
-        <Suspense fallback={<PageLoader />}>
+    <ErrorBoundary>
+      <WorkspaceProvider>
+        <Router>
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
@@ -82,10 +83,19 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/gauntlet"
+              element={
+                <ProtectedRoute>
+                  <GauntletPage />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </Suspense>
       </Router>
     </WorkspaceProvider>
+  </ErrorBoundary>
   );
 }
 

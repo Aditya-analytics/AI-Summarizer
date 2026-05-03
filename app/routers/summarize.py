@@ -124,15 +124,33 @@ async def summarize(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    source_key = user_input.text[:60].strip()
-    doc_id, cache = await _get_or_create_doc(
-        source_key, "TEXT", user_input.text, current_user.id, db,
-        doc_name=user_input.doc_name, # Pass doc_name
-        length=user_input.length, language=user_input.language, bgt=bgt
-    )
-    if cache:
-        return "Content already processed. Access via library."
-    return await stream_ingestion_progress(user_input.text, doc_id)
+    try:
+        import hashlib
+        source_key = f"text_{hashlib.sha256(user_input.text.encode()).hexdigest()[:32]}"
+        doc_id, cache = await _get_or_create_doc(
+            source_key, "TEXT", user_input.text, current_user.id, db,
+            doc_name=user_input.doc_name, # Pass doc_name
+            length=user_input.length, language=user_input.language, bgt=bgt
+        )
+        if cache:
+            return "Content already processed. Access via library."
+        
+        from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
+        creds = await get_gauntlet_credentials(current_user, db)
+        
+        response = await stream_ingestion_progress(
+            user_input.text, doc_id, 
+            api_key=creds["api_key"], 
+            model=creds["embeddings_model"]
+        )
+
+        if creds["is_free"]:
+            await consume_free_call(current_user, db)
+        
+        return response
+    except Exception as e:
+        print(f"SUMMARIZE ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ingestion Failed: {str(e)}")
 
 
 # ── URL ───────────────────────────────────────────────────────────────────────
@@ -143,15 +161,32 @@ async def summarize_url(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    text = await scrape_url(user_input.url)
-    doc_id, cache = await _get_or_create_doc(
-        user_input.url, "URL", text, current_user.id, db,
-        doc_name=user_input.doc_name, # Pass doc_name
-        length=user_input.length, language=user_input.language, bgt=bgt
-    )
-    if cache:
-        return "Content already processed. Access via library."
-    return await stream_ingestion_progress(text, doc_id)
+    try:
+        text = await scrape_url(user_input.url)
+        doc_id, cache = await _get_or_create_doc(
+            user_input.url, "URL", text, current_user.id, db,
+            doc_name=user_input.doc_name, # Pass doc_name
+            length=user_input.length, language=user_input.language, bgt=bgt
+        )
+        if cache:
+            return "Content already processed. Access via library."
+        
+        from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
+        creds = await get_gauntlet_credentials(current_user, db)
+
+        response = await stream_ingestion_progress(
+            text, doc_id, 
+            api_key=creds["api_key"], 
+            model=creds["embeddings_model"]
+        )
+
+        if creds["is_free"]:
+            await consume_free_call(current_user, db)
+        
+        return response
+    except Exception as e:
+        print(f"SCRAPE ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Web Ingestion Failed: {str(e)}")
 
 
 # ── YouTube ───────────────────────────────────────────────────────────────────
@@ -171,7 +206,20 @@ async def yt_summarize(
         )
         if cache:
             return "Content already processed. Access via library."
-        return await stream_ingestion_progress(text, doc_id)
+        
+        from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
+        creds = await get_gauntlet_credentials(current_user, db)
+
+        response = await stream_ingestion_progress(
+            text, doc_id, 
+            api_key=creds["api_key"], 
+            model=creds["embeddings_model"]
+        )
+
+        if creds["is_free"]:
+            await consume_free_call(current_user, db)
+        
+        return response
     except INVALID_URL:
         raise HTTPException(status_code=400, detail="Invalid Url")
 
@@ -199,7 +247,19 @@ async def summarize_pdf(
         if cache:
             return "Content already processed. Access via library."
         
-        return await stream_ingestion_progress(text, doc_id)
+        from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
+        creds = await get_gauntlet_credentials(current_user, db)
+
+        response = await stream_ingestion_progress(
+            text, doc_id, 
+            api_key=creds["api_key"], 
+            model=creds["embeddings_model"]
+        )
+
+        if creds["is_free"]:
+            await consume_free_call(current_user, db)
+        
+        return response
 
     except InvalidPDFError:
         raise HTTPException(status_code=400,detail="Uploaded document is not a pdf!")
@@ -231,6 +291,9 @@ async def delete_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found or access denied")
 
+    from app.helper.embed import delete_vectors
+    await delete_vectors(document_id)
+    
     await db.delete(doc)   # One line wipes everything via CASCADE
     await db.commit()
 

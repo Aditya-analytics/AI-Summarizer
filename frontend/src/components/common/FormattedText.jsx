@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
 /**
@@ -35,45 +36,64 @@ const FormattedText = ({ children, docUrl }) => {
     setSeekTo({ time: seconds, timestamp: Date.now() });
   };
 
-  // Custom renderer for text nodes to detect timestamps
-  const renderers = {
-    text: ({ value }) => {
-      // Non-capturing group for the optional hour part
-      const timestampRegex = /\[(?:(?:\d{1,2}:)?\d{1,2}:\d{2})\]/g;
-      
-      const matches = value.match(timestampRegex);
-      if (!matches) return value;
-
-      const parts = value.split(timestampRegex);
-      const result = [];
-      
-      parts.forEach((part, i) => {
-        result.push(part);
-        if (i < matches.length) {
-          const timestamp = matches[i];
-          result.push(
-            <a 
-              key={i} 
-              href="#" 
-              className="timestamp-link"
-              onClick={(e) => handleTimestampClick(e, timestamp)}
-            >
-              {timestamp}
-            </a>
-          );
-        }
-      });
-      return result;
-    }
-  };
-
   return (
     <div className="formatted-text">
-      <ReactMarkdown components={renderers}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
         {children}
       </ReactMarkdown>
       
       <style jsx global>{`
+        .formatted-text {
+          font-family: var(--font-body);
+          line-height: 1.7;
+          color: var(--text-secondary);
+        }
+
+        .formatted-text h1, .formatted-text h2, .formatted-text h3 {
+          font-family: var(--font-display);
+          color: var(--text-primary);
+          margin-top: 24px;
+          margin-bottom: 12px;
+          font-weight: 800;
+        }
+
+        .formatted-text p { margin-bottom: 16px; }
+        
+        /* Elegant Tables */
+        .formatted-text table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+          margin: 24px 0;
+          border: 1px solid var(--border-subtle);
+          border-radius: 12px;
+          overflow: hidden;
+          background: white;
+          box-shadow: var(--shadow-sm);
+        }
+
+        .formatted-text th {
+          background: #f8fafc;
+          padding: 12px 16px;
+          text-align: left;
+          font-weight: 700;
+          color: var(--text-primary);
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .formatted-text td {
+          padding: 12px 16px;
+          border-bottom: 1px solid #f1f5f9;
+          font-size: 14px;
+          color: var(--text-secondary);
+        }
+
+        .formatted-text tr:last-child td { border-bottom: none; }
+        .formatted-text tr:hover td { background: #fafafa; }
+
         .timestamp-link {
           display: inline-flex;
           align-items: center;

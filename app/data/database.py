@@ -7,7 +7,8 @@ if "sqlite" not in SQLALCHEMY_DATABASE_URL:
     engine_args = {
         "pool_size": 20,
         "max_overflow": 10,
-        "pool_recycle": 3600
+        "pool_recycle": 3600,
+        "pool_pre_ping": True  # Check connection health before use (crucial for Supabase)
     }
 
 engine = create_async_engine(

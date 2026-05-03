@@ -12,6 +12,12 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str] = mapped_column()
 
+    # Nova Gauntlet Fields
+    gauntlet_api_key: Mapped[Optional[str]] = mapped_column(nullable=True) # Encrypted
+    gauntlet_engine_model: Mapped[str] = mapped_column(default="models/gemini-2.5-flash-lite")
+    gauntlet_embeddings_model: Mapped[str] = mapped_column(default="models/gemini-embedding-2-preview")
+    free_calls_remaining: Mapped[int] = mapped_column(default=10)
+
     documents: Mapped[list["Document"]] = relationship(
         back_populates="user", 
         lazy="selectin",

@@ -22,6 +22,13 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar, onBack }) => {
     { id: 3, title: 'System Update', desc: 'Nova v2.5 is now live with Gemini Flash-Lite.', icon: Settings, time: '5h ago', unread: false },
   ];
 
+  const [productionNotice, setProductionNotice] = useState({ show: false, feature: '' });
+  
+  const triggerNotice = (featureName) => {
+    setProductionNotice({ show: true, feature: featureName });
+    setTimeout(() => setProductionNotice({ show: false, feature: '' }), 3000);
+  };
+
   return (
     <header className="nova-header">
       <div className="header-left">
@@ -41,9 +48,14 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar, onBack }) => {
       </div>
 
       <div className="header-right">
-        <div className="search-container">
+        <div className="search-container" onClick={() => triggerNotice('Search')}>
           <Search size={16} className="search-icon" />
-          <input type="text" placeholder="Search documents..." className="search-input" />
+          <input 
+            type="text" 
+            placeholder="Search documents..." 
+            className="search-input" 
+            readOnly
+          />
           <div className="search-kbd">
             <Command size={10} />
             <span>K</span>
@@ -88,7 +100,7 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar, onBack }) => {
                       </div>
                     ))}
                   </div>
-                  <div className="popover-footer">
+                  <div className="popover-header">
                     <button>View all notifications</button>
                   </div>
                 </motion.div>
@@ -131,15 +143,15 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar, onBack }) => {
                   </div>
                   <div className="popover-divider" />
                   <div className="popover-menu">
-                    <button className="menu-item" onClick={() => { navigate('/profile'); setShowProfile(false); }}>
+                    <button className="menu-item" onClick={() => triggerNotice('Profile')}>
                       <User size={16} />
                       <span>My Profile</span>
                     </button>
-                    <button className="menu-item" onClick={() => { navigate('/settings'); setShowProfile(false); }}>
+                    <button className="menu-item" onClick={() => triggerNotice('Settings')}>
                       <Settings size={16} />
                       <span>Settings</span>
                     </button>
-                    <button className="menu-item" onClick={() => { navigate('/settings'); setShowProfile(false); }}>
+                    <button className="menu-item" onClick={() => triggerNotice('Billing')}>
                       <CreditCard size={16} />
                       <span>Billing</span>
                     </button>
@@ -157,6 +169,23 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar, onBack }) => {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {productionNotice.show && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className="global-production-toast"
+          >
+            <div className="notice-icon">🚧</div>
+            <div className="notice-text">
+              <strong>{productionNotice.feature} Module</strong>
+              <span>This feature is currently in production. Sorry for the inconvenience!</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style jsx>{`
         .nova-header {
@@ -245,6 +274,45 @@ const TopHeader = ({ title, onNewDocument, onToggleSidebar, onBack }) => {
           font-size: 14px;
           color: var(--text-primary);
           font-family: var(--font-body);
+        }
+
+        .global-production-toast {
+          position: fixed;
+          top: 100px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 400px;
+          background: white;
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-xl);
+          padding: 20px;
+          display: flex;
+          gap: 20px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+          z-index: 1000;
+          border-top: 4px solid var(--brand-primary);
+        }
+
+        .notice-icon {
+          font-size: 28px;
+        }
+
+        .notice-text {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .notice-text strong {
+          font-size: 16px;
+          font-weight: 800;
+          color: var(--text-primary);
+        }
+
+        .notice-text span {
+          font-size: 13px;
+          color: var(--text-muted);
+          line-height: 1.5;
         }
 
         .search-kbd {

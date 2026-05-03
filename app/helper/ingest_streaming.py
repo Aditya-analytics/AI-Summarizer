@@ -3,7 +3,7 @@ import json
 from fastapi.responses import StreamingResponse
 from app.services.pipeline import ingest_pipeline
 
-async def stream_ingestion_progress(text: str, document_id: int):
+async def stream_ingestion_progress(text: str, document_id: int, api_key=None, model=None):
     """
     Streams the progress of document ingestion (parsing, chunking, embedding).
     Does NOT generate a summary.
@@ -27,7 +27,7 @@ async def stream_ingestion_progress(text: str, document_id: int):
             await asyncio.sleep(0.3)
             
             yield "Generating vector embeddings for RAG...\n"
-            await store_chunks(chunks, document_id)
+            await store_chunks(chunks, document_id, api_key=api_key, model=model)
             await asyncio.sleep(0.3)
             
             yield "Nova intelligence processing complete!\n"
@@ -35,5 +35,6 @@ async def stream_ingestion_progress(text: str, document_id: int):
             
         except Exception as e:
             yield f"Error during processing: {str(e)}\n"
+            yield "[ERROR]\n"
 
     return StreamingResponse(progress_generator(), media_type="text/plain")

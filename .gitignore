@@ -25,3 +25,15 @@ frontend/.env.local
 # IDEs
 .vscode/
 .idea/
+
+# Scratch & Large Assets
+animation_guantlet/
+scratch/
+brain/
+chroma_db/
+workspace.db
+requirements.txt
+node_modules/
+dist/
+build/
+linkedin_post.md

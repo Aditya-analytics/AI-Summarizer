@@ -8,6 +8,7 @@ import SummaryPanel from '../components/workspace/SummaryPanel';
 import ChatPanel from '../components/workspace/ChatPanel';
 import QuizPanel from '../components/workspace/QuizPanel';
 import NotesPanel from '../components/workspace/NotesPanel';
+import NovaLoader from '../components/common/NovaLoader';
 
 // Services
 import api from '../services/api';
@@ -172,6 +173,17 @@ const WorkspacePage = () => {
     }
   };
 
+  // Logic: Clear Chat History
+  const handleClearChat = async () => {
+    if (!doc) return;
+    try {
+      await api.clearChat(doc.id);
+      setMessages([]);
+    } catch (err) {
+      console.error("Failed to clear chat", err);
+    }
+  };
+
   // Logic: Generate Quiz
   const handleGenerateQuiz = async () => {
     if (!doc) return;
@@ -251,7 +263,16 @@ const WorkspacePage = () => {
     if (activePanel === 'raw') handleFetchRawText();
   }, [activePanel]);
 
-  if (!doc) return <div className="loader-full">Loading Nova Workspace...</div>;
+  if (!doc) {
+    return (
+      <div className="loader-full">
+        <NovaLoader variant="scanning" text="Initializing Nova Workspace..." />
+        <style jsx>{`
+          .loader-full { height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-base); }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="workspace-root">
@@ -305,6 +326,7 @@ const WorkspacePage = () => {
                   input={chatInput}
                   setInput={setChatInput}
                   onSend={handleSendMessage}
+                  onClear={handleClearChat}
                   loading={chatLoading}
                   docUrl={doc?.name}
                 />
@@ -340,7 +362,11 @@ const WorkspacePage = () => {
                     <p>Original unformatted text extracted from the document.</p>
                   </div>
                   <div className="raw-body">
-                    {rawTextLoading ? "Parsing content..." : rawText || "No content found."}
+                    {rawTextLoading ? (
+                      <div className="raw-loader-container">
+                        <NovaLoader variant="scanning" text="Extracting raw knowledge..." />
+                      </div>
+                    ) : rawText || "No content found."}
                   </div>
                   <style jsx>{`
                     .raw-text-view { background: white; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); height: 100%; display: flex; flex-direction: column; }
@@ -348,6 +374,7 @@ const WorkspacePage = () => {
                     .raw-header h2 { font-family: var(--font-display); font-size: 20px; font-weight: 800; margin-bottom: 4px; }
                     .raw-header p { font-size: 14px; color: var(--text-muted); }
                     .raw-body { flex: 1; padding: 40px; overflow-y: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.8; color: var(--text-secondary); white-space: pre-wrap; }
+                    .raw-loader-container { height: 100%; display: flex; align-items: center; justify-content: center; }
                   `}</style>
                 </div>
               )}

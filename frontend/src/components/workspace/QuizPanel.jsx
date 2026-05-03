@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import NovaLoader from '../common/NovaLoader';
 
 const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error }) => {
   const [currentStep, setCurrentStep] = useState(0); // 0 to n-1, then 'results'
@@ -97,12 +98,7 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
       <div className="panel-content glass-v4">
         {loading ? (
           <div className="loading-state">
-            <div className="loading-animation">
-              <Sparkles size={32} className="sparkle-icon" />
-              <div className="pulse-ring"></div>
-            </div>
-            <h3>Generating Intelligence...</h3>
-            <p>Nova is analyzing your document to create a custom challenge.</p>
+            <NovaLoader variant="thinking" text="Nova is analyzing your document to create a custom challenge." />
           </div>
         ) : !quiz ? (
           <div className="empty-state">
@@ -136,19 +132,36 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
             </div>
 
             <div className="results-list">
-              {quiz.questions.map((q, i) => (
-                <div key={i} className={`result-item ${answers[i] === q.correct_answer ? 'correct' : 'incorrect'}`}>
-                  <div className="result-q-row">
-                    {answers[i] === q.correct_answer ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                    <span>{q.question}</span>
-                  </div>
-                  {answers[i] !== q.correct_answer && (
-                    <div className="result-correction">
-                      Correct Answer: <strong>{q.correct_answer}</strong>
+              {quiz.questions.map((q, i) => {
+                const isCorrect = answers[i] === q.correct_answer;
+                return (
+                  <div key={i} className={`result-item-v2 ${isCorrect ? 'correct' : 'incorrect'}`}>
+                    <div className="result-q-header">
+                      <div className="status-indicator">
+                        {isCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                      </div>
+                      <span className="q-text">{q.question}</span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    
+                    {!isCorrect && (
+                      <div className="correction-box">
+                        <span className="label">Correct Answer:</span>
+                        <span className="value">{q.correct_answer}</span>
+                      </div>
+                    )}
+
+                    {q.explanation && (
+                      <div className="insight-box">
+                        <Sparkles size={14} className="insight-icon" />
+                        <div className="insight-content">
+                          <span className="insight-label">Nova Insight:</span>
+                          <p>{q.explanation}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <button className="btn-primary-v4 wide" onClick={handleReset}>
@@ -317,14 +330,51 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
         .results-header h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
         .results-header p { color: var(--text-muted); }
 
-        .results-list { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
-        .result-item { padding: 16px; border-radius: 12px; text-align: left; background: #fafafa; border: 1px solid #f1f5f9; }
-        .result-item.correct { border-left: 4px solid #10b981; }
-        .result-item.incorrect { border-left: 4px solid #ef4444; }
-        .result-q-row { display: flex; gap: 12px; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-        .correct .result-q-row { color: #047857; }
-        .incorrect .result-q-row { color: #991b1b; }
-        .result-correction { font-size: 12px; margin-left: 28px; color: var(--text-muted); }
+        .results-list { width: 100%; display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
+        .result-item-v2 { 
+          padding: 24px; 
+          border-radius: 20px; 
+          text-align: left; 
+          background: white; 
+          border: 1px solid var(--border-subtle);
+          box-shadow: var(--shadow-sm);
+          transition: all 0.2s;
+        }
+        .result-item-v2.correct { border-left: 6px solid #10b981; }
+        .result-item-v2.incorrect { border-left: 6px solid #ef4444; }
+        
+        .result-q-header { display: flex; gap: 16px; margin-bottom: 16px; }
+        .status-indicator { flex-shrink: 0; margin-top: 2px; }
+        .correct .status-indicator { color: #10b981; }
+        .incorrect .status-indicator { color: #ef4444; }
+        .q-text { font-size: 16px; font-weight: 700; color: var(--text-primary); line-height: 1.5; }
+
+        .correction-box { 
+          margin-left: 32px; 
+          padding: 12px 16px; 
+          background: #fef2f2; 
+          border-radius: 12px; 
+          margin-bottom: 16px;
+          display: flex;
+          gap: 8px;
+          font-size: 14px;
+        }
+        .correction-box .label { font-weight: 800; color: #991b1b; }
+        .correction-box .value { color: #b91c1c; font-weight: 600; }
+
+        .insight-box {
+          margin-left: 32px;
+          padding: 16px;
+          background: #f8fafc;
+          border-radius: 12px;
+          display: flex;
+          gap: 12px;
+          border: 1px dashed var(--border-subtle);
+        }
+        .insight-icon { color: var(--brand-primary); flex-shrink: 0; margin-top: 3px; }
+        .insight-label { display: block; font-size: 11px; font-weight: 800; color: var(--brand-primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .insight-box p { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin: 0; }
+        
         .btn-primary-v4.wide { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px; background: var(--brand-primary); color: white; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; }
 
         /* States */

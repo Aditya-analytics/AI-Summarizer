@@ -2,7 +2,7 @@ import json
 from app.services.llm_service import llm_response, llm_full_response
 from app.config import MODEL_NAME
 
-async def generate_quiz_stream(context: str, difficulty: str):
+async def generate_quiz_stream(context: str, difficulty: str, model=None, api_key=None):
     prompt = f"""# IDENTITY
 You are an expert academic examiner. Your task is to generate a high-quality, challenging multiple-choice quiz based ONLY on the provided source content.
 

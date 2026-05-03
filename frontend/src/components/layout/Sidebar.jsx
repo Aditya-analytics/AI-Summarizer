@@ -9,7 +9,8 @@ import {
   LogOut,
   HelpCircle,
   Users,
-  Plus
+  Plus,
+  Zap
 } from 'lucide-react';
 
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -33,6 +34,7 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
     { id: 'home', label: 'Home', icon: Sparkles, path: '/' },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { id: 'library', label: 'My Library', icon: FileText, path: '/library' },
+    { id: 'gauntlet', label: 'Nova Gauntlet', icon: Sparkles, path: '/gauntlet', special: true },
     { id: 'community', label: 'Community', icon: Users, path: '#', badge: 'Soon' },
     { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
   ];
@@ -72,7 +74,7 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
             return (
               <div 
                 key={item.id}
-                className={`nav-item ${isActive ? 'active' : ''}`}
+                className={`nav-item ${isActive ? 'active' : ''} ${item.id === 'gauntlet' ? 'gauntlet' : ''}`}
                 onClick={() => {
                   if (item.path !== '#') {
                     navigate(item.path);
@@ -99,8 +101,11 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
                 {userName[0].toUpperCase()}
               </div>
               <div className="user-info">
-                <p className="user-name">{userName}</p>
-                <p className="user-plan">Pro Plan</p>
+                <div className="name-row">
+                  <p className="user-name">{userName}</p>
+                  <div className="pro-tag-minimal">PRO</div>
+                </div>
+                <p className="user-email-minimal">{userEmail}</p>
               </div>
             </div>
           )}
@@ -219,6 +224,36 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
           color: var(--brand-primary);
         }
 
+        .nav-item.gauntlet {
+          position: relative;
+          color: var(--brand-primary);
+          background: hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.03);
+          border: 1px solid hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.1);
+          margin: 4px 0;
+          overflow: hidden;
+        }
+
+        .nav-item.gauntlet::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: var(--brand-glow);
+          opacity: 0.1;
+          animation: gauntlet-pulse 3s infinite ease-in-out;
+          pointer-events: none;
+        }
+
+        .nav-item.gauntlet:hover {
+          background: hsla(var(--h-primary), var(--s-primary), var(--l-primary), 0.08);
+          border-color: var(--brand-primary);
+          transform: translateX(4px);
+        }
+
+        @keyframes gauntlet-pulse {
+          0%, 100% { opacity: 0.05; }
+          50% { opacity: 0.15; }
+        }
+
         .nav-badge {
           margin-left: auto;
           background: var(--border-subtle);
@@ -247,29 +282,63 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onClose }) => {
         }
 
         .user-avatar {
-          width: 36px;
-          height: 36px;
-          border-radius: var(--radius-full);
-          background: var(--bg-surface);
-          border: 2px solid var(--brand-primary);
+          width: 32px;
+          height: 32px;
+          min-width: 32px;
+          flex-shrink: 0;
+          border-radius: 50%;
+          background: #f8fafc;
+          border: 1px solid var(--border-subtle);
           color: var(--brand-primary);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: 700;
+          font-weight: 800;
+          font-size: 13px;
+        }
+
+        .user-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+          overflow: hidden;
+        }
+
+        .name-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .user-name {
           font-size: 14px;
           font-weight: 700;
           color: var(--text-primary);
-          text-transform: capitalize;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        .user-plan {
+        .pro-tag-minimal {
+          font-size: 9px;
+          font-weight: 900;
+          background: var(--brand-glow);
+          color: var(--brand-primary);
+          padding: 2px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.05em;
+          flex-shrink: 0;
+        }
+
+        .user-email-minimal {
           font-size: 11px;
           color: var(--text-muted);
-          font-weight: 600;
+          font-weight: 500;
+          margin: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .footer-btn {

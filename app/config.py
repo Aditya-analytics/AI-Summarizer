@@ -3,9 +3,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 MODEL_FLASH_LITE = "models/gemini-2.5-flash-lite"
-MODEL_FLASH = "models/gemini-2.5-flash"
+MODEL_FLASH = "models/gemini-2.5-flash-lite" # Mapping to lite as fallback if flash is image-only
 MODEL_PRO = "models/gemini-2.5-pro"
 # Default fallback (Smartly use Flash-Lite for everything fast)
 MODEL_NAME = MODEL_FLASH_LITE
