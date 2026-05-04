@@ -13,6 +13,12 @@ if "sqlite" not in SQLALCHEMY_DATABASE_URL:
 
 engine = create_async_engine(
     url=SQLALCHEMY_DATABASE_URL,
+    # Crucial for Supabase/PgBouncer in Transaction Mode:
+    # Disable statement caching to prevent DuplicatePreparedStatementError
+    connect_args={
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0
+    },
     **engine_args
 )
 
