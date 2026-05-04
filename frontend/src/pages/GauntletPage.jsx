@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import Sidebar from '../components/layout/Sidebar';
 import TopHeader from '../components/layout/TopHeader';
+import CONFIG from '../config';
+
+const BASE = CONFIG.API_BASE_URL;
 
 const GAUNTLET_MODELS = {
   engine: [
@@ -49,7 +52,7 @@ const GauntletPage = () => {
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('nova_token');
-      const res = await fetch('http://localhost:8000/gauntlet/settings', {
+      const res = await fetch(`${BASE}/gauntlet/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -72,7 +75,7 @@ const GauntletPage = () => {
       }
 
       const token = localStorage.getItem('nova_token');
-      const res = await fetch('http://localhost:8000/gauntlet/settings', {
+      const res = await fetch(`${BASE}/gauntlet/settings`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -106,7 +109,7 @@ const GauntletPage = () => {
     if (!window.confirm('Are you sure you want to remove your custom Infinity Stone?')) return;
     try {
       const token = localStorage.getItem('nova_token');
-      await fetch('http://localhost:8000/gauntlet/key', {
+      await fetch(`${BASE}/gauntlet/key`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

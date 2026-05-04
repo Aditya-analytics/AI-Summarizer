@@ -165,7 +165,7 @@ async def ask(user_input: QA, request: Request, db: AsyncSession = Depends(get_d
     from app.helper.gauntlet_helper import get_gauntlet_credentials, consume_free_call
     creds = await get_gauntlet_credentials(current_user, db)
 
-    context, scores = await get_context_from_db(user_input.question, user_input.document_id, request.app.state.vector_db, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"])
+    context, scores = await get_context_from_db(user_input.question, user_input.document_id, request.app.state.vector_db, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"], db_session=db)
     prompt = generate_qa_prompt(user_input.question,context)
     full_answer = []
     try :
@@ -229,7 +229,7 @@ async def get_quizes(config: QuizConfig, document_id: int, request: Request, db:
 
     from app.services.quiz_service import generate_quiz_stream
     quiz_query = f"key concepts and important facts for a {config.difficulty} difficulty quiz"
-    context, scores = await get_context_from_db(quiz_query, document_id, request.app.state.vector_db, k=15, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"])
+    context, scores = await get_context_from_db(quiz_query, document_id, request.app.state.vector_db, k=15, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"], db_session=db)
     
     if not context or not context.strip():
         raise HTTPException(status_code=503, detail="Document is still being indexed.")
@@ -297,7 +297,7 @@ async def get_notes(config: BasicConfigs, document_id: int, request: Request, db
     # raw_text only used for k calculation — NOT as the query (would exceed context limit)
     k = max(3, min(20, len(raw_text) // 1000))
     notes_query = f"key concepts, main ideas, summary, and important details for {config.length} notes"
-    context, scores = await get_context_from_db(notes_query, document_id, request.app.state.vector_db, k=k, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"])
+    context, scores = await get_context_from_db(notes_query, document_id, request.app.state.vector_db, k=k, api_key=creds["api_key"], embeddings_model=creds["embeddings_model"], db_session=db)
 
     # Guard: if no vectors exist yet, the document is still being indexed
     if not context or not context.strip():
