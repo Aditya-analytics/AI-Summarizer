@@ -143,8 +143,9 @@ const DocumentLibrary = ({ documents, loading, onDelete }) => {
           background: white;
           border: 1px solid var(--border-subtle);
           border-radius: var(--radius-xl);
-          overflow: hidden;
+          overflow-x: auto;
           box-shadow: var(--shadow-sm);
+          -webkit-overflow-scrolling: touch;
         }
 
         .library-table {
@@ -180,6 +181,12 @@ const DocumentLibrary = ({ documents, loading, onDelete }) => {
         .library-row td {
           padding: 24px;
           vertical-align: middle;
+          white-space: nowrap;
+        }
+        
+        .library-table td:first-child {
+          min-width: 200px;
+          white-space: normal;
         }
 
         .doc-name {

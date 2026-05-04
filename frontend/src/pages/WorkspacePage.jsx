@@ -385,7 +385,7 @@ const WorkspacePage = () => {
 
       <style jsx>{`
         .workspace-root { display: flex; height: 100vh; background: var(--bg-base); overflow: hidden; }
-        .workspace-main { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 40px; }
+        .workspace-main { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 40px 24px; }
         .workspace-view { max-width: 1200px; width: 100%; height: 100%; margin: 0 auto; }
         .panel-wrapper { height: 100%; }
         .loader-full { height: 100vh; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; color: var(--brand-primary); background: var(--bg-base); }
@@ -398,7 +398,7 @@ const WorkspacePage = () => {
 
         @media (max-width: 1024px) {
           .workspace-main { padding: 0; }
-          .workspace-view { padding: 20px; }
+          .workspace-view { padding: 16px; }
           .mobile-workspace-header { display: flex; }
         }
       `}</style>

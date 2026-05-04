@@ -29,8 +29,12 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
     // Auto-advance after a short delay for better flow
     if (currentStep < quiz.questions.length - 1) {
       setTimeout(() => {
-        setCurrentStep(prev => prev + 1);
-      }, 400);
+        // Use functional update to ensure we use the latest state if user clicked manually
+        setCurrentStep(prev => {
+          if (prev === currentStep) return prev + 1;
+          return prev;
+        });
+      }, 600);
     }
   };
 
@@ -283,11 +287,11 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
 
         .empty-icon { color: var(--text-muted); margin-bottom: 24px; opacity: 0.5; }
 
-        .panel-content { flex: 1; background: white; border: 1px solid var(--border-subtle); border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .panel-content { flex: 1; background: white; border: 1px solid var(--border-subtle); border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; position: relative; min-height: 500px; }
         
         /* Active View */
-        .quiz-active-view { flex: 1; display: flex; flex-direction: column; padding: 32px; }
-        .quiz-top-bar { margin-bottom: 32px; }
+        .quiz-active-view { flex: 1; display: flex; flex-direction: column; padding: 32px; overflow-y: auto; }
+        .quiz-top-bar { margin-bottom: 32px; flex-shrink: 0; }
         .step-indicator { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; }
         .step-indicator span { color: var(--brand-primary); }
         .progress-mini-track { height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
@@ -309,7 +313,7 @@ const QuizPanel = ({ quiz, loading, onGenerate, difficulty, setDifficulty, error
         .check-dot { width: 10px; height: 10px; background: var(--brand-primary); border-radius: 50%; opacity: 0; transition: opacity 0.2s; }
         .selected .check-dot { opacity: 1; }
 
-        .quiz-nav-footer { margin-top: auto; padding-top: 32px; display: flex; justify-content: space-between; gap: 16px; }
+        .quiz-nav-footer { margin-top: auto; padding-top: 32px; display: flex; justify-content: space-between; gap: 16px; flex-shrink: 0; background: white; position: sticky; bottom: -32px; z-index: 5; border-top: 1px solid #f1f5f9; margin: 0 -32px -32px -32px; padding: 24px 32px; }
         .btn-nav-prev { display: flex; align-items: center; gap: 8px; padding: 12px 24px; background: transparent; border: none; font-weight: 700; color: var(--text-muted); cursor: pointer; }
         .btn-nav-prev:disabled { opacity: 0.3; cursor: not-allowed; }
         .btn-nav-next, .btn-finish { display: flex; align-items: center; gap: 10px; padding: 12px 32px; background: var(--brand-primary); color: white; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }

@@ -56,6 +56,22 @@ body {
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.container-responsive {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+@media (max-width: 768px) {
+  .container-responsive {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }
 
 ::-webkit-scrollbar {

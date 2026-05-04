@@ -53,10 +53,16 @@ const LibraryPage = () => {
         }
 
         .content-inner {
-          padding: 40px;
+          padding: 40px 24px;
           max-width: 1200px;
           margin: 0 auto;
           width: 100%;
+        }
+
+        @media (max-width: 768px) {
+          .content-inner {
+            padding: 24px 16px;
+          }
         }
 
         .page-intro {
