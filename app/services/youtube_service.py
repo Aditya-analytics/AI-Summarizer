@@ -17,6 +17,12 @@ async def get_transcript(url:str):
             'subtitleslangs': ['en.*', 'hi.*'],
             'quiet': True,
             'no_warnings': True,
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'custom_header': {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
+                'Sec-Fetch-Mode': 'navigate',
+            }
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -73,7 +79,13 @@ async def get_transcript(url:str):
         print(f"LOGG : yt-dlp error: {e}. Falling back to youtube_transcript_api failsafe...")
         # Defensive Multi-Method Fallback
         try:
+            import youtube_transcript_api
             from youtube_transcript_api import YouTubeTranscriptApi
+            
+            # DIAGNOSTIC: Log available methods to see what's going on in Render environment
+            print(f"LOGG : youtube_transcript_api module attributes: {dir(youtube_transcript_api)}")
+            print(f"LOGG : YouTubeTranscriptApi class attributes: {dir(YouTubeTranscriptApi)}")
+            
             video_id = get_video_id(url)
             
             # Method 1: Try list_transcripts (standard for 0.6.x+)
@@ -100,7 +112,7 @@ async def get_transcript(url:str):
                 data = api_instance.get_transcript(video_id, languages=['en', 'hi'])
                 return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
                 
-            raise Exception("No valid method found in YouTubeTranscriptApi")
+            raise Exception(f"No valid method found. Available in class: {[a for a in dir(YouTubeTranscriptApi) if not a.startswith('_')]}")
 
         except Exception as fallback_e:
             print(f"LOGG : All fallbacks failed: {fallback_e}")
