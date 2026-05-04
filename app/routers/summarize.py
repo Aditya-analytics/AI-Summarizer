@@ -222,6 +222,9 @@ async def yt_summarize(
         return response
     except INVALID_URL:
         raise HTTPException(status_code=400, detail="Invalid Url")
+    except Exception as e:
+        print(f"YOUTUBE ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Video Ingestion Failed: {str(e)}")
 
 @router.post("/pdf")
 async def summarize_pdf(
