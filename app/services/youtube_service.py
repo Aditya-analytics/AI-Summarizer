@@ -75,8 +75,15 @@ async def get_transcript(url:str):
         from youtube_transcript_api import YouTubeTranscriptApi
         try:
             video_id = get_video_id(url)
-            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'hi'])
-            return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in transcript])
+            # Use list_transcripts() which is more reliable than direct get_transcript()
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            try:
+                transcript = transcript_list.find_transcript(['en', 'hi'])
+            except:
+                transcript = transcript_list.find_generated_transcript(['en', 'hi'])
+            
+            data = transcript.fetch()
+            return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
         except Exception as fallback_e:
             print(f"LOGG : Fallback also failed: {fallback_e}")
             if "RequestBlocked" in str(fallback_e):
