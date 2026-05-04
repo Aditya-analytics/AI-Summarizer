@@ -70,25 +70,40 @@ async def get_transcript(url:str):
             return "\n".join(formatted_transcript)
 
     except Exception as e:
-        print(f"LOGG : yt-dlp error: {e}. Falling back to youtube_transcript_api...")
-        # Fallback to the old method just in case
+        print(f"LOGG : yt-dlp error: {e}. Falling back to youtube_transcript_api failsafe...")
+        # Defensive Multi-Method Fallback
         try:
-            import youtube_transcript_api
-            api_class = youtube_transcript_api.YouTubeTranscriptApi
+            from youtube_transcript_api import YouTubeTranscriptApi
             video_id = get_video_id(url)
             
-            # Defensive call to list_transcripts
-            transcript_list = api_class.list_transcripts(video_id)
-            try:
-                transcript = transcript_list.find_transcript(['en', 'hi'])
-            except:
-                # Try generated ones if manual not found
-                transcript = transcript_list.find_generated_transcript(['en', 'hi'])
-            
-            data = transcript.fetch()
-            return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+            # Method 1: Try list_transcripts (standard for 0.6.x+)
+            if hasattr(YouTubeTranscriptApi, 'list_transcripts'):
+                try:
+                    ts_list = YouTubeTranscriptApi.list_transcripts(video_id)
+                    try:
+                        transcript = ts_list.find_transcript(['en', 'hi'])
+                    except:
+                        transcript = ts_list.find_generated_transcript(['en', 'hi'])
+                    data = transcript.fetch()
+                    return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+                except Exception as list_e:
+                    print(f"LOGG : list_transcripts failed: {list_e}")
+
+            # Method 2: Try direct get_transcript (standard for older versions)
+            if hasattr(YouTubeTranscriptApi, 'get_transcript'):
+                data = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'hi'])
+                return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+
+            # Method 3: Instance based (rare but defensive)
+            api_instance = YouTubeTranscriptApi()
+            if hasattr(api_instance, 'get_transcript'):
+                data = api_instance.get_transcript(video_id, languages=['en', 'hi'])
+                return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+                
+            raise Exception("No valid method found in YouTubeTranscriptApi")
+
         except Exception as fallback_e:
-            print(f"LOGG : Fallback also failed: {fallback_e}")
+            print(f"LOGG : All fallbacks failed: {fallback_e}")
             if "RequestBlocked" in str(fallback_e):
                 raise Exception("YouTube is blocking Render's IP. Please try a PDF or URL source, or a different video.")
             raise Exception(f"Transcript Retrieval Failure: {str(fallback_e)}")
