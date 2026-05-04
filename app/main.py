@@ -35,13 +35,17 @@ def create_app():
     from fastapi.middleware.cors import CORSMiddleware
     
     # Production Hardening: Allow local dev and any Vercel deployments for this project
-    frontend_url = os.getenv("FRONTEND_URL", "https://project-v8wyz")
-    # Clean up the prefix for regex use
-    prefix = frontend_url.strip().replace("https://", "").replace("http://", "")
+    # We extract the base project prefix to allow all associated Vercel subdomains/previews
+    raw_frontend_url = os.getenv("FRONTEND_URL", "https://project-v8wyz")
     
-    # This regex matches the prefix exactly OR any subdomain/extension of it on vercel.app
-    # e.g., https://project-v8wyz.vercel.app and https://project-v8wyz-git-v3...vercel.app
-    origin_regex = rf"https?://{prefix}.*\.vercel\.app|https?://localhost:.*"
+    # 1. Strip protocol and any trailing slashes/paths to get the base prefix
+    prefix = raw_frontend_url.replace("https://", "").replace("http://", "").split(".")[0].split("/")[0]
+    
+    # 2. Construct a robust regex that matches:
+    # - https://prefix.vercel.app
+    # - https://prefix-any-suffix.vercel.app
+    # - http://localhost:ANY_PORT
+    origin_regex = rf"https?://{prefix}(-[a-zA-Z0-9-]+)?\.vercel\.app|https?://localhost:.*"
     
     app.add_middleware(
         CORSMiddleware,
