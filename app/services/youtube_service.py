@@ -107,17 +107,88 @@ async def get_transcript(url: str):
         return text
 
     except Exception as fallback_e:
-        print(f"LOGG : youtube-transcript-api v1.x failed: {fallback_e}")
-        # Give the user a clear, actionable error message
-        err = str(fallback_e)
-        if any(k in err for k in ['RequestBlocked', 'IpBlocked', 'bot']):
-            raise Exception(
-                "YouTube is blocking this server's IP address. "
-                "Please try a different video or use the Web URL / PDF upload instead."
+        print(f"LOGG : youtube-transcript-api v1.x failed: {fallback_e}. Trying Invidious...")
+
+    # ── Fallback 3: Invidious public API ───────────────────────────────────────
+    # Invidious instances run on community (non-cloud-provider) IPs,
+    # so YouTube does NOT block them. This is the production fix for Render IP blocks.
+    INVIDIOUS_INSTANCES = [
+        "https://inv.nadeko.net",
+        "https://invidious.privacyredirect.com",
+        "https://invidious.nerdvpn.de",
+        "https://yt.cdaut.de",
+    ]
+
+    for instance in INVIDIOUS_INSTANCES:
+        try:
+            print(f"LOGG : Trying Invidious instance: {instance}")
+            caps_res = requests.get(
+                f"{instance}/api/v1/captions/{video_id}",
+                timeout=10,
+                headers={"User-Agent": "Mozilla/5.0"}
             )
-        if 'NoTranscriptFound' in err or 'TranscriptsDisabled' in err:
-            raise Exception(
-                "This video has no captions available. "
-                "Try a video that has auto-generated or manual subtitles."
+            if caps_res.status_code != 200:
+                continue
+
+            captions = caps_res.json().get("captions", [])
+            if not captions:
+                continue
+
+            # Prefer English or Hindi, fall back to first available
+            target = next(
+                (c for c in captions if any(
+                    lang in c.get("language_code", "") for lang in ["en", "hi"]
+                )),
+                captions[0]
             )
-        raise Exception(f"Transcript retrieval failed: {err}")
+
+            # Fetch the VTT caption file
+            vtt_url = f"{instance}{target['url']}&format=vtt"
+            vtt_res = requests.get(vtt_url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+            if vtt_res.status_code != 200:
+                continue
+
+            # Parse VTT → plain timestamped text
+            raw = vtt_res.text
+            raw = re.sub(r'WEBVTT.*?\n\n', '', raw, flags=re.DOTALL)
+            lines = []
+            for block in raw.strip().split("\n\n"):
+                parts = block.strip().split("\n")
+                # Find the timestamp line and extract text after it
+                for i, part in enumerate(parts):
+                    if "-->" in part:
+                        text_lines = parts[i + 1:]
+                        text = " ".join(text_lines)
+                        text = re.sub(r'<[^>]+>', '', text).strip()
+                        # Parse start time for label
+                        start_str = part.split("-->")[0].strip()
+                        try:
+                            h, m, s = 0, 0, 0
+                            t_parts = start_str.replace(",", ".").split(":")
+                            if len(t_parts) == 3:
+                                h, m, s = int(t_parts[0]), int(t_parts[1]), float(t_parts[2])
+                            elif len(t_parts) == 2:
+                                m, s = int(t_parts[0]), float(t_parts[1])
+                            total_s = int(h * 3600 + m * 60 + s)
+                            label = f"[{total_s//60:02d}:{total_s%60:02d}]"
+                        except Exception:
+                            label = ""
+                        if text:
+                            lines.append(f"{label} {text}".strip())
+                        break
+
+            text = "\n".join(lines).replace('\x00', '')
+            if text.strip():
+                print(f"LOGG : Invidious succeeded via {instance} ({len(lines)} lines).")
+                return text
+
+        except Exception as inv_e:
+            print(f"LOGG : Invidious {instance} failed: {inv_e}")
+            continue
+
+    # All methods exhausted — raise a clean user-facing error
+    raise Exception(
+        "Could not retrieve transcript. YouTube is blocking all server-side retrieval methods "
+        "for this video. Please try a different video, or upload the content as a PDF/URL instead."
+    )
+
