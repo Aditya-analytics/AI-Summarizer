@@ -72,14 +72,17 @@ async def get_transcript(url:str):
     except Exception as e:
         print(f"LOGG : yt-dlp error: {e}. Falling back to youtube_transcript_api...")
         # Fallback to the old method just in case
-        from youtube_transcript_api import YouTubeTranscriptApi
         try:
+            import youtube_transcript_api
+            api_class = youtube_transcript_api.YouTubeTranscriptApi
             video_id = get_video_id(url)
-            # Use list_transcripts() which is more reliable than direct get_transcript()
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            
+            # Defensive call to list_transcripts
+            transcript_list = api_class.list_transcripts(video_id)
             try:
                 transcript = transcript_list.find_transcript(['en', 'hi'])
             except:
+                # Try generated ones if manual not found
                 transcript = transcript_list.find_generated_transcript(['en', 'hi'])
             
             data = transcript.fetch()
@@ -88,4 +91,4 @@ async def get_transcript(url:str):
             print(f"LOGG : Fallback also failed: {fallback_e}")
             if "RequestBlocked" in str(fallback_e):
                 raise Exception("YouTube is blocking Render's IP. Please try a PDF or URL source, or a different video.")
-            raise fallback_e
+            raise Exception(f"Transcript Retrieval Failure: {str(fallback_e)}")
