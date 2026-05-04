@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -77,12 +80,11 @@ def create_app():
     return app
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(
         "app.main:create_app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
+        reload=False,
         factory=True,
         log_level="info",
         access_log=True
