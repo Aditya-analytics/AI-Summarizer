@@ -14,6 +14,8 @@ async def extract_pdf_text(file : UploadFile = File(...,detail="Upload pdf to pr
     with fitz.open(stream=pdf_bytes,filetype="pdf") as doc :
         text_pages = [page.get_text("text",sort=True) for page in doc]
     
-
-    return "\n\n".join(text_pages).strip()
+    raw_text = "\n\n".join(text_pages).strip()
+    
+    # CRITICAL: Strip NULL bytes which PostgreSQL rejects
+    return raw_text.replace('\x00', '')
 

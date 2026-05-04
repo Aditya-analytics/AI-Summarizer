@@ -17,20 +17,26 @@ async def scrape_url(url:str):
             session.headers.update(SCRAPE_HEADER)
             response = session.get(url, timeout=30.0, allow_redirects=True)
             
-            # Log the block for debugging on Render if it persists
+            # Force decode and log if block persists
             if response.status_code == 403:
                 print(f"LOGG : Wikipedia 403 persist even with requests. URL: {url}")
             
             response.raise_for_status()
 
-            soup = BeautifulSoup(response.text, "html.parser")
+            # Sanitization: Ensure content is decoded as utf-8, ignoring binary artifacts
+            content = response.content.decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(content, "html.parser")
             
             # Remove noise
             for script in soup(["script", "style", "nav", "footer"]):
                 script.extract()
 
             text = soup.get_text(separator="\n", strip=True)
-            return text
+            
+            # CRITICAL: Strip NULL bytes which PostgreSQL rejects
+            sanitized_text = text.replace('\x00', '')
+            
+            return sanitized_text
             
     except Exception as e:
         print(f"SCRAPE ERROR: {str(e)}")

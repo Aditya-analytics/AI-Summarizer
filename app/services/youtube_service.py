@@ -97,20 +97,23 @@ async def get_transcript(url:str):
                     except:
                         transcript = ts_list.find_generated_transcript(['en', 'hi'])
                     data = transcript.fetch()
-                    return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+                    text = "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+                    return text.replace('\x00', '') # Sanitization
                 except Exception as list_e:
                     print(f"LOGG : list_transcripts failed: {list_e}")
 
             # Method 2: Try direct get_transcript (standard for older versions)
             if hasattr(YouTubeTranscriptApi, 'get_transcript'):
                 data = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'hi'])
-                return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+                text = "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+                return text.replace('\x00', '') # Sanitization
 
             # Method 3: Instance based (rare but defensive)
             api_instance = YouTubeTranscriptApi()
             if hasattr(api_instance, 'get_transcript'):
                 data = api_instance.get_transcript(video_id, languages=['en', 'hi'])
-                return "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+                text = "\n".join([f"[{int(entry['start'])//60:02d}:{int(entry['start'])%60:02d}] {entry['text']}" for entry in data])
+                return text.replace('\x00', '') # Sanitization
                 
             raise Exception(f"No valid method found. Available in class: {[a for a in dir(YouTubeTranscriptApi) if not a.startswith('_')]}")
 
